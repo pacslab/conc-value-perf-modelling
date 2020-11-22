@@ -1,7 +1,7 @@
 FROM python:3.6-slim
 
 # Create the user that will run the app
-RUN adduser --disabled-password --gecos '' api-user
+RUN adduser --disabled-password --gecos '' app
 
 ENV FLASK_APP=app.py
 
@@ -24,12 +24,13 @@ ADD src /opt/src/
 
 WORKDIR /opt/src
 RUN chmod +x /opt/src/*.sh
-RUN chown -R api-user:api-user ./
+RUN chown -R app:app ./
 
-USER api-user
+USER app
 
 EXPOSE 5000
 
+# entrypoint source: https://medium.com/@madflojo/shutdown-signals-with-docker-entry-point-scripts-5e560f4e2d45
 ENTRYPOINT [ "/opt/src/entrypoint.sh" ]
 
 CMD ["python", "index.py"]

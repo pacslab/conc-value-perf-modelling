@@ -6,7 +6,10 @@ import time
 import os
 
 from shutil import copyfile
-copyfile('./iperf3', '/tmp/iperf3')
+try:
+    copyfile('./iperf3', '/tmp/iperf3')
+except:
+    pass
 os.chmod('/tmp/iperf3', 0o555)
 # copyfile('./dd', '/tmp/dd')
 # os.chmod('/tmp/dd', 0o555)
@@ -22,7 +25,9 @@ def run_cmd(cmd):
     return os.popen(cmd).read().strip("\n")
 
 
-def main(event):
+def handle(event):
+    event = json.loads(event)
+
     # start timer
     tm_st = time.time() * 1000
 
