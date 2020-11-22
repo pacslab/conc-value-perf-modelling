@@ -8,7 +8,8 @@ ENV FLASK_APP=app.py
 # Install requirements
 ADD src/requirements.txt /opt/requirements.txt
 RUN pip install --upgrade pip && \
-    pip install -r /opt/requirements.txt
+    pip --disable-pip-version-check --no-cache-dir install -r /opt/requirements.txt \
+    && rm -rf /tmp/pip-tmp
 
 # to enable ps command
 ENV DEBIAN_FRONTEND=noninteractive
