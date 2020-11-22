@@ -1,0 +1,20 @@
+{
+    "cmds": {
+        "sleep": 0,
+        "sleep_till": 0,
+        "run": {
+            "cmd": "ls"
+        },
+        "cpu": {
+            "n": 10000
+        },
+        "io": {
+            "rd": 3,
+            "size": "1M",
+            "cnt": 5
+        },
+        "stat": {
+            "argv": 1
+        }
+    }
+}
