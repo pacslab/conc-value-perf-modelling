@@ -34,5 +34,5 @@ app.get('*', (req, res) => {
 })
 
 app.listen(port, () => {
-  console.log(`Server is up on port ${port}: http://localhost:${port}`)
+  console.log(`\nServer is up:\n\n\thttp://localhost:${port}\n\n`)
 })
