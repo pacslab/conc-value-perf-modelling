@@ -1,11 +1,17 @@
 
 "use strict"
 
+const http = require('http')
 const express = require('express')
+const socketio = require('socket.io')
+
+// configurations
 const config = require('./config')
 
 // create app and set port
 const app = express()
+const server = http.createServer(app)
+const io = socketio(server)
 const port = process.env.PORT || 3000
 
 // Parse incoming json
@@ -32,6 +38,13 @@ app.get('*', (req, res) => {
     "err": "not found!",
   })
 })
+
+io.on('connection', (socket) => {
+  console.log('a user connected');
+  socket.on('disconnect', () => {
+    console.log('user disconnected');
+  });
+});
 
 app.listen(port, () => {
   console.log(`\nServer is up:\n\n\thttp://localhost:${port}\n\n`)
