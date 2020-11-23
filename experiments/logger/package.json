@@ -1,0 +1,19 @@
+{
+  "name": "logger",
+  "version": "1.0.0",
+  "description": "A logger for concurrency-value autoscaling applications.",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js -e js,hbs",
+    "dockerdev": "nodemon src/app.js --legacy-watch -e js,hbs",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "log",
+    "logger",
+    "performance"
+  ],
+  "author": "Nima Mahmoudi",
+  "license": "MIT"
+}
