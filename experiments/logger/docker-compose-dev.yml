@@ -8,7 +8,6 @@ services:
     command: bash -c "npm install -g nodemon && npm run dockerdev"
     volumes:
       - ./src:/usr/src/app/src
-      - node-modules:/usr/src/app/node_modules
     ports:
       - "3000:3000"
     depends_on:
@@ -25,5 +24,4 @@ services:
 ## By default this config uses default local driver,
 ## For custom volumes replace with volume driver configuration.
 volumes:
-  node-modules:
   mongodb-data:
