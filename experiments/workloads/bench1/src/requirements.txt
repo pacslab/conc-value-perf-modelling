@@ -1,2 +1,4 @@
 flask
 waitress
+python-socketio[asyncio_client]
+nest_asyncio

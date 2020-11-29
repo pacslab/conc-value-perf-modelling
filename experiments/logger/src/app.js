@@ -5,6 +5,21 @@ const http = require('http')
 const express = require('express')
 const socketio = require('socket.io')
 
+const winston = require('winston')
+const myformat = winston.format.combine(
+  winston.format.colorize(),
+  winston.format.timestamp(),
+  winston.format.align(),
+  winston.format.printf(info => `${info.timestamp} ${info.level}: ${info.message}`)
+);
+const consoleTransport = new winston.transports.Console({
+  format: myformat
+})
+const myWinstonOptions = {
+  transports: [consoleTransport]
+}
+const logger = new winston.createLogger(myWinstonOptions)
+
 // configurations
 const config = require('./config')
 
@@ -12,6 +27,9 @@ const config = require('./config')
 const app = express()
 const server = http.createServer(app)
 const io = socketio(server)
+app.io = io
+app.logger = logger
+global.logger = logger
 const port = process.env.PORT || 3000
 
 // Parse incoming json
@@ -24,6 +42,10 @@ app.use(bodyParser.urlencoded({ extended: true }))
 // CORS
 const cors = require('cors')
 app.use(cors())
+
+// add routers
+const handleioRouter = require('./helpers/handleio')(app)
+app.use(handleioRouter)
 
 // Home Page
 app.get('', (req, res) => {
@@ -39,13 +61,6 @@ app.get('*', (req, res) => {
   })
 })
 
-io.on('connection', (socket) => {
-  console.log('a user connected');
-  socket.on('disconnect', () => {
-    console.log('user disconnected');
-  });
-});
-
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(`\nServer is up:\n\n\thttp://localhost:${port}\n\n`)
 })
