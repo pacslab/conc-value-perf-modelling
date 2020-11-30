@@ -123,15 +123,16 @@ def calculateConcHistogram():
     prepareNewConcValue()
 
     # calculate histogram
-    conc_histogram = dict()
-    for h in conc_hist:
-        if h.conc_value in conc_histogram:
-            conc_histogram[h.conc_value] += h.time
-        else:
-            conc_histogram[h.conc_value] = h.time
+    with conc_hist_lock:
+        conc_histogram = dict()
+        for h in conc_hist:
+            if h.conc_value in conc_histogram:
+                conc_histogram[h.conc_value] += h.time
+            else:
+                conc_histogram[h.conc_value] = h.time
 
-    # clear history
-    conc_hist.clear()
+        # clear history
+        conc_hist.clear()
 
     return conc_histogram
     
