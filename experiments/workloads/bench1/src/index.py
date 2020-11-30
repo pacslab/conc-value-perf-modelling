@@ -54,6 +54,24 @@ def main_route(path):
     ret = handler.handle(request.get_data(as_text=as_text))
     return ret
 
+
+
+# add request timing functionality
+from flask import g
+import time
+
+@app.before_request
+def before_request():
+    logger.requestArrival()
+    g.start = time.time()
+
+@app.after_request
+def after_request(response):
+    diff = time.time() - g.start
+    logger.requestDeparture(diff)
+    return response
+
+
 if __name__ == '__main__':
     print("starting the app...")
 

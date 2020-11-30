@@ -29,6 +29,11 @@ initializeUsingApp = (_app) => {
       im.recordKilled(socket, msg)
     })
 
+    socket.on('routine_report', (msg) => {
+      console.log('routine report:')
+      console.log(msg)
+    })
+
     socket.on('disconnect', () => {
       // if we have already received client's info
       if (client_info) {
