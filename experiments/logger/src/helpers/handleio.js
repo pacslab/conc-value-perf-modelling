@@ -8,14 +8,16 @@ const im = require('./instance_manager')
 // app and io placeholder before being initialized
 var app
 var io
-var logger
+
+// get logger info
+const logger = global.logger
+
 initializeUsingApp = (_app) => {
   app = _app
   io = app.io
-  logger = app.logger
 
   io.on('connection', (socket) => {
-    console.log('a user connected');
+    logger.info('a user connected');
     let client_info
 
     socket.on('conn_client_info', (msg) => {
@@ -35,7 +37,7 @@ initializeUsingApp = (_app) => {
     });
   });
 
-  console.log('SocketIO server started')
+  logger.info('SocketIO server started')
 }
 
 // expose the logs on the web server
