@@ -7,8 +7,12 @@ import sys
 # flask imports
 from flask import Flask, request
 import handler
-from waitress import serve
+# from waitress import serve
 import os
+
+from helpers import logger
+
+serve_port = os.getenv('PORT', 8080)
 
 # add signal handling logic
 def handler_stop_signals(signum, frame):
@@ -52,5 +56,14 @@ def main_route(path):
 
 if __name__ == '__main__':
     print("starting the app...")
-    serve(app, host='0.0.0.0', port=5000)
+
+    # register signal handlers
+    logger.register_signal_handlers()
+
+    # start asyncio thread
+    logger.start_thread()
+
+    # using the main flask app.run to allow threaded execution
+    # serve(app, host='0.0.0.0', port=serve_port)
+    app.run(host='0.0.0.0', port=serve_port, threaded=True)
 

@@ -28,6 +28,9 @@ RUN chown -R app:app ./
 
 USER app
 
+# Cloud Run port
+ENV PORT=8080
+
 EXPOSE 5000
 
 # entrypoint source: https://medium.com/@madflojo/shutdown-signals-with-docker-entry-point-scripts-5e560f4e2d45
