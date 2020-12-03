@@ -9,6 +9,8 @@ nest_asyncio.apply()
 import threading
 import uuid
 import os
+# for deep copy of objects
+import copy
 
 # system characteristics
 client_uuid = str(uuid.uuid4())
@@ -81,11 +83,15 @@ from collections import namedtuple
 
 conc_value_lock = threading.Lock()
 conc_hist_lock = threading.Lock()
+service_time_lock = threading.Lock()
 curr_conc_value = 0
 last_conc_transition = time.time()
 
+# history of concurrency value through time
 ConcHist = namedtuple('ConcHist', ['time', 'conc_value'])
 conc_hist = []
+# history of service time through time
+service_time_hist = dict()
 
 # log concurrency value
 def logConcurrencyValue():
@@ -107,7 +113,7 @@ def requestArrival():
     global curr_conc_value
     with conc_value_lock:
         curr_conc_value += 1
-    logConcurrencyValue()
+    # logConcurrencyValue()
 
 # called when request about to depart
 def requestDeparture(resp_time):
@@ -115,7 +121,13 @@ def requestDeparture(resp_time):
     global curr_conc_value
     with conc_value_lock:
         curr_conc_value -= 1
-    logConcurrencyValue()
+    # logConcurrencyValue()
+    with service_time_lock:
+        resp_time = round(resp_time * 1000 / 50) * 50
+        if resp_time in service_time_hist:
+            service_time_hist[resp_time] += 1
+        else:
+            service_time_hist[resp_time] = 1
 
 
 def calculateConcHistogram():
@@ -135,16 +147,28 @@ def calculateConcHistogram():
         conc_hist.clear()
 
     return conc_histogram
+
+def calculateServiceTimeHistogram():
+    with service_time_lock:
+        # deep copy the object
+        service_time_hist_copy = copy.deepcopy(service_time_hist)
+
+        # clear history
+        service_time_hist.clear()
+
+    return service_time_hist_copy
     
 
 def sendReports():
     print('Sending report...')
     # first, calculate histogram
     conc_histogram = calculateConcHistogram()
+    service_histogram = calculateServiceTimeHistogram()
     # next, send report
     report = {
         'client_info': get_client_info(),
         'conc_histogram': conc_histogram,
+        'service_time_hist': service_histogram,
     }
     loop.run_until_complete(send_routine_report(report))
 

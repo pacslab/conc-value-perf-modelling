@@ -46,6 +46,6 @@ const sendBatchRequest = async (conc) => {
 
 
 console.log('Starting the test...')
-sendBatchRequest(5)
+sendBatchRequest(10)
 
 
