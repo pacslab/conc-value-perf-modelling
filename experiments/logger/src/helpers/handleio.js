@@ -32,6 +32,7 @@ initializeUsingApp = (_app) => {
     socket.on('routine_report', (msg) => {
       console.log('routine report:')
       console.log(msg)
+      im.recordRoutineReport(msg)
     })
 
     socket.on('disconnect', () => {

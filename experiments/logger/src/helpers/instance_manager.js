@@ -60,10 +60,34 @@ const recordKilled = (socket, clientInfo) => {
   client.kill_time = Date.now()
 }
 
+const recordRoutineReport = (msg) => {
+  const { client_info, conc_histogram, service_time_hist } = msg
+  const report_time = Date.now()
+
+  const { client_uuid, experiment_name } = client_info
+
+  logger.info(`${experiment_name}: Client Reported: ${client_uuid}`)
+
+  client = getClient(experiment_name, client_uuid)
+
+  // update objects with timestamps
+  conc_histogram.report_time = report_time
+
+  // update latest values
+  client.latest_conc_hist = conc_histogram
+
+  if(client.conc_hists) { // update
+    client.conc_hists.push(conc_histogram)
+  } else { // create new one
+    client.conc_hists = [ conc_histogram ]
+  }
+}
+
 
 module.exports = {
     experiment_logs,
     recordConnection,
     recordDisconnection,
     recordKilled,
+    recordRoutineReport,
 }

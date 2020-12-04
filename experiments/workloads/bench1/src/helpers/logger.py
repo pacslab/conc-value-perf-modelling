@@ -146,12 +146,19 @@ def calculateConcHistogram():
         # clear history
         conc_hist.clear()
 
-    return conc_histogram
+    return {
+        'conc_values': list(conc_histogram.keys()),
+        'conc_times': list(conc_histogram.values()),
+    }
 
 def calculateServiceTimeHistogram():
     with service_time_lock:
         # deep copy the object
-        service_time_hist_copy = copy.deepcopy(service_time_hist)
+        # service_time_hist_copy = copy.deepcopy(service_time_hist)
+        service_time_hist_copy = {
+            'service_time_values': list(service_time_hist.keys()),
+            'service_time_times': list(service_time_hist.values()),
+        }
 
         # clear history
         service_time_hist.clear()
