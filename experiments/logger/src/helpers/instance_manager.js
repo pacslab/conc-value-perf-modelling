@@ -2,6 +2,9 @@
 // get logger info
 const logger = global.logger
 
+// for doing momization of stats
+const memoize = require("memoizee")
+
 const experiment_logs = {}
 
 const getExp = (exp_name) => {
@@ -184,5 +187,5 @@ module.exports = {
   recordDisconnection,
   recordKilled,
   recordRoutineReport,
-  getExperimentStats,
+  getExperimentStats: memoize(getExperimentStats, { length: false, maxAge: 1000 }),
 }
