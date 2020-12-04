@@ -54,6 +54,7 @@ router.get('/logger/experiment_logs/:exp_name/stats', (req, res) => {
     let total_req_count = 0;
     let total_last_report_req_count = 0;
     let total_service_time_hist = {};
+    let total_conc_hist = {};
 
     // loop through instances
     for (let i in im.experiment_logs[exp_name]) {
@@ -61,7 +62,8 @@ router.get('/logger/experiment_logs/:exp_name/stats', (req, res) => {
       let last_reported_req_count = 0;
       let inst_total_req_count = 0;
       let inst_service_time_hist = {};
-      if(o.service_time_hists){
+      let inst_conc_hist = {};
+      if (o.service_time_hists){
         o.service_time_hists.forEach((v) => {
           inst_total_req_count += v.count
           for (let idx=0; idx<v.service_time_values.length; idx++) {
@@ -72,14 +74,29 @@ router.get('/logger/experiment_logs/:exp_name/stats', (req, res) => {
             if(!total_service_time_hist[v.service_time_values[idx]]){
               total_service_time_hist[v.service_time_values[idx]] = 0
             }
-            
 
             inst_service_time_hist[v.service_time_values[idx]] += v.service_time_times[idx]
             total_service_time_hist[v.service_time_values[idx]] += v.service_time_times[idx]
           }
         })
       }
-      if(o.latest_service_time_hist){
+      if (o.conc_hists) {
+        o.conc_hists.forEach((v) => {
+          for (let idx=0; idx<v.conc_values.length; idx++) {
+            if(!inst_conc_hist[v.conc_values[idx]]){
+              inst_conc_hist[v.conc_values[idx]] = 0
+            }
+
+            if(!total_conc_hist[v.conc_values[idx]]){
+              total_conc_hist[v.conc_values[idx]] = 0
+            }
+
+            inst_conc_hist[v.conc_values[idx]] += v.conc_times[idx]
+            total_conc_hist[v.conc_values[idx]] += v.conc_times[idx]
+          }
+        })
+      }
+      if (o.latest_service_time_hist){
         last_reported_req_count = o.latest_service_time_hist.count
       }
 
@@ -96,6 +113,10 @@ router.get('/logger/experiment_logs/:exp_name/stats', (req, res) => {
           x: Object.keys(inst_service_time_hist).map(Number),
           y: Object.values(inst_service_time_hist).map(Number),
         },
+        conc_hist: {
+          x: Object.keys(inst_conc_hist).map(Number),
+          y: Object.values(inst_conc_hist).map(Number),
+        },
       })
     }
     res.send({
@@ -105,7 +126,11 @@ router.get('/logger/experiment_logs/:exp_name/stats', (req, res) => {
       service_time_hists: {
         x: Object.keys(total_service_time_hist).map(Number),
         y: Object.values(total_service_time_hist).map(Number),
-      }
+      },
+      conc_hists: {
+        x: Object.keys(total_conc_hist).map(Number),
+        y: Object.values(total_conc_hist).map(Number),
+      },
     })
   } else {
     res.status(404).send({
