@@ -10,7 +10,8 @@ import threading
 import uuid
 import os
 # for deep copy of objects
-import copy
+# import copy
+from collections import OrderedDict
 
 # system characteristics
 client_uuid = str(uuid.uuid4())
@@ -146,18 +147,25 @@ def calculateConcHistogram():
         # clear history
         conc_hist.clear()
 
+    # sort the keys before sending them
+    od = OrderedDict(sorted(conc_histogram.items()))
+
     return {
-        'conc_values': list(conc_histogram.keys()),
-        'conc_times': list(conc_histogram.values()),
+        'conc_values': list(od.keys()),
+        'conc_times': list(od.values()),
     }
 
 def calculateServiceTimeHistogram():
     with service_time_lock:
         # deep copy the object
         # service_time_hist_copy = copy.deepcopy(service_time_hist)
+
+        # sort the keys before sending them
+        od = OrderedDict(sorted(service_time_hist.items()))
+        
         service_time_hist_copy = {
-            'service_time_values': list(service_time_hist.keys()),
-            'service_time_times': list(service_time_hist.values()),
+            'service_time_values': list(od.keys()),
+            'service_time_times': list(od.values()),
         }
 
         # clear history
