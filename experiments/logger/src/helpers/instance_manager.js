@@ -72,14 +72,22 @@ const recordRoutineReport = (msg) => {
 
   // update objects with timestamps
   conc_histogram.report_time = report_time
+  service_time_hist.report_time = report_time
 
   // update latest values
   client.latest_conc_hist = conc_histogram
+  client.latest_service_time_hist = service_time_hist
 
   if(client.conc_hists) { // update
     client.conc_hists.push(conc_histogram)
   } else { // create new one
     client.conc_hists = [ conc_histogram ]
+  }
+
+  if(client.service_time_hists) { // update
+    client.service_time_hists.push(service_time_hist)
+  } else { // create new one
+    client.service_time_hists = [ service_time_hist ]
   }
 }
 
