@@ -52,25 +52,60 @@ router.get('/logger/experiment_logs/:exp_name/stats', (req, res) => {
   if (im.experiment_logs[exp_name]) {
     let instance_stats = []
     let total_req_count = 0;
-    let last_reported_req_count = 0;
+    let total_last_report_req_count = 0;
+    let total_service_time_hist = {};
+
+    // loop through instances
     for (let i in im.experiment_logs[exp_name]) {
       let o = im.experiment_logs[exp_name][i]
+      let last_reported_req_count = 0;
+      let inst_total_req_count = 0;
+      let inst_service_time_hist = {};
       if(o.service_time_hists){
         o.service_time_hists.forEach((v) => {
-          total_req_count += v.count
+          inst_total_req_count += v.count
+          for (let idx=0; idx<v.service_time_values.length; idx++) {
+            if(!inst_service_time_hist[v.service_time_values[idx]]){
+              inst_service_time_hist[v.service_time_values[idx]] = 0
+            }
+
+            if(!total_service_time_hist[v.service_time_values[idx]]){
+              total_service_time_hist[v.service_time_values[idx]] = 0
+            }
+            
+
+            inst_service_time_hist[v.service_time_values[idx]] += v.service_time_times[idx]
+            total_service_time_hist[v.service_time_values[idx]] += v.service_time_times[idx]
+          }
         })
       }
       if(o.latest_service_time_hist){
         last_reported_req_count = o.latest_service_time_hist.count
       }
+
+      // perform aggregation tasks
+      total_last_report_req_count += last_reported_req_count
+      total_req_count += inst_total_req_count
+
+      // push instance stats
       instance_stats.push({
         instance_id: i,
-        total_req_count,
-        last_reported_req_count,
+        last_req_count: last_reported_req_count,
+        total_req_count: inst_total_req_count,
+        service_time_hist: {
+          x: Object.keys(inst_service_time_hist).map(Number),
+          y: Object.values(inst_service_time_hist).map(Number),
+        },
       })
     }
     res.send({
       instance_stats,
+      total_req_count,
+      total_last_report_req_count,
+      service_time_hists: {
+        x: Object.keys(total_service_time_hist).map(Number),
+        y: Object.values(total_service_time_hist).map(Number),
+      }
     })
   } else {
     res.status(404).send({
