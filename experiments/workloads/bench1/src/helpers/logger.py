@@ -162,10 +162,11 @@ def calculateServiceTimeHistogram():
 
         # sort the keys before sending them
         od = OrderedDict(sorted(service_time_hist.items()))
-        
+
         service_time_hist_copy = {
             'service_time_values': list(od.keys()),
             'service_time_times': list(od.values()),
+            'count': sum(od.values()),
         }
 
         # clear history
