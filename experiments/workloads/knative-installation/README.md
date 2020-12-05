@@ -84,6 +84,8 @@ If you get `Hello Go Sample v1!` as a result, everything is fine. Sometimes, the
 
 ## Knative CLI (kn)
 
+- [Kn Documentation](https://github.com/knative/client/blob/master/docs/cmd/kn.md)
+
 ```sh
 # install kn
 curl -L https://storage.googleapis.com/knative-nightly/client/latest/kn-linux-amd64 -o kn

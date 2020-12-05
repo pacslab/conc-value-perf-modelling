@@ -18,6 +18,7 @@ client_uuid = str(uuid.uuid4())
 # experiment name
 experiment_name = os.getenv('EXPERIMENT_NAME', 'DEFAULT_EXPERIMENT')
 report_interval = os.getenv('REPORT_INTERVAL', '10')
+sio_server = os.getenv('SOCKETIO_SERVER', 'http://172.17.0.1:3000')
 report_interval = float(report_interval)
 
 loop = asyncio.get_event_loop()
@@ -72,7 +73,7 @@ async def pong_from_server():
 
 
 async def start_server():
-    await sio.connect('http://172.17.0.1:3000')
+    await sio.connect(sio_server)
     while True:
         await sio.sleep(0.1)
 
