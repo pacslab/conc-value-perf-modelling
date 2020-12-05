@@ -17,7 +17,7 @@ const postData = {
         },
         "io": {
             "rd": 3,
-            "size": "1M",
+            "size": "200K",
             "cnt": 5
         },
         "stat": {
