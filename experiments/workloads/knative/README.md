@@ -67,7 +67,7 @@ kubectl patch configmap config-domain --namespace knative-serving --patch \
   '{"data": {"example.com": null, "[EXTERNAL-IP].xip.io": ""}}'
 ```
 
-Make sure to replace `[EXTERNAL-IP]` with the external ip of the VM (or whatever ip you will be accessing the service from).
+Make sure to replace `[EXTERNAL-IP]` with the external ip of the VM (or whatever ip you will be accessing the service from) or use you custom domain (e.g., `kn.nima-dev.com`).
 
 Next, we can double check our installation with a `hello-world` application:
 
