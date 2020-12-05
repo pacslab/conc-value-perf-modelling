@@ -92,22 +92,54 @@ const recordRoutineReport = (msg) => {
   } else { // create new one
     client.service_time_hists = [service_time_hist]
   }
+
+  // update the time on the last report of the experiment
+  exp = getExp(experiment_name)
+  exp.last_report = report_time
+}
+
+const getLastReportConcHist = (exp_name) => {
+  let total_conc_hist = {}
+  let report_generate_time = Date.now()
+  // loop through instances
+  for (let i in experiment_logs[exp_name]) {
+    let o = experiment_logs[exp_name][i]
+    let v = o.latest_conc_hist
+    // if we have the latest report
+    if (v) {
+      // it only counts if the report has been in the past report period
+      if (report_generate_time - v.report_time < 10000) {
+        // for each entry in the log
+        for (let idx = 0; idx < v.conc_values.length; idx++) {
+          if (!total_conc_hist[v.conc_values[idx]]) {
+            total_conc_hist[v.conc_values[idx]] = 0
+          }
+          total_conc_hist[v.conc_values[idx]] += v.conc_times[idx]
+        }
+      }
+    }
+  }
+
+  return {
+    x: Object.keys(total_conc_hist).map(Number),
+    y: Object.values(total_conc_hist).map(Number),
+  }
 }
 
 const getExperimentStats = (exp_name) => {
   let instance_stats = []
-  let total_req_count = 0;
-  let total_last_report_req_count = 0;
-  let total_service_time_hist = {};
-  let total_conc_hist = {};
+  let total_req_count = 0
+  let total_last_report_req_count = 0
+  let total_service_time_hist = {}
+  let total_conc_hist = {}
 
   // loop through instances
   for (let i in experiment_logs[exp_name]) {
     let o = experiment_logs[exp_name][i]
-    let last_reported_req_count = 0;
-    let inst_total_req_count = 0;
-    let inst_service_time_hist = {};
-    let inst_conc_hist = {};
+    let last_reported_req_count = 0
+    let inst_total_req_count = 0
+    let inst_service_time_hist = {}
+    let inst_conc_hist = {}
     if (o.service_time_hists) {
       o.service_time_hists.forEach((v) => {
         inst_total_req_count += v.count
@@ -177,6 +209,7 @@ const getExperimentStats = (exp_name) => {
       x: Object.keys(total_conc_hist).map(Number),
       y: Object.values(total_conc_hist).map(Number),
     },
+    last_report_conc: getLastReportConcHist(exp_name),
   }
 }
 
@@ -188,4 +221,5 @@ module.exports = {
   recordKilled,
   recordRoutineReport,
   getExperimentStats: memoize(getExperimentStats, { length: false, maxAge: 1000 }),
+  getLastReportConcHist,
 }
