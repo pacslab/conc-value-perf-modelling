@@ -86,7 +86,19 @@ router.get('/logger/experiment_logs', (req, res) => {
 
 // allow clearing the data
 router.get('/logger/clear', (req, res) => {
-  im.experiment_logs = {}
+  for (let exp_name in im.experiment_logs) {
+    for (let node_id in im.experiment_logs[exp_name]) {
+      // remove node if already killed
+      if (im.experiment_logs[exp_name][node_id].kill_time) {
+        delete(im.experiment_logs[exp_name][node_id])
+      }
+      else {
+        for (let field of ['conc_hists', 'service_time_hists', 'latest_service_time_hist', 'latest_conc_hist']) {
+          delete(im.experiment_logs[exp_name][node_id][field])
+        }
+      }
+    }
+  }
   res.send('OK')
 })
 
