@@ -95,3 +95,6 @@ sudo mv ./kn /usr/local/bin/kn
 # test installation
 kn service ls
 ```
+
+To create services using `kn` check out the [kn apply documentations](https://github.com/knative/client/blob/master/docs/cmd/kn_service_apply.md).
+

@@ -84,6 +84,12 @@ router.get('/logger/experiment_logs', (req, res) => {
   res.send(result)
 })
 
+// allow clearing the data
+router.get('/logger/clear', (req, res) => {
+  im.experiment_logs = {}
+  res.send('OK')
+})
+
 
 module.exports = function (app) {
   initializeUsingApp(app)
