@@ -160,6 +160,11 @@ const getExperimentStats = (exp_name) => {
 
   // loop through instances
   for (let i in experiment_logs[exp_name]) {
+    // if last report property
+    if (i === 'last_report') {
+      continue
+    }
+
     let o = experiment_logs[exp_name][i]
     let last_reported_req_count = 0
     let inst_total_req_count = 0
