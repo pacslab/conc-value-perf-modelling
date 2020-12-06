@@ -64,9 +64,12 @@ async def connect():
     await conn_client_info()
 
 
-async def start_server():
-    await sio.connect(sio_server)
-    while True:
+async def start_server(keep_running=True):
+    try:
+        await sio.connect(sio_server)
+    except Exception:
+        await start_server(keep_running=False)
+    while keep_running:
         await sio.sleep(0.1)
 
 def asyncio_thread():
