@@ -244,15 +244,16 @@ setInterval(() => {
   Object.keys(experiment_logs).forEach((exp_name) => {
     exp = getExp(exp_name)
     // if experiment has been recently updated in the last report interval
-    // if (report_generate_time - exp.last_report < config.REPORT_INTERVAL) {
-    if (!concurrency_logs[exp_name]) {
-      concurrency_logs[exp_name] = []
-    }
+    // this is mainly to avoid memory explosion of the server
+    if (report_generate_time - exp.last_report < (60 * config.REPORT_INTERVAL)) {
+      if (!concurrency_logs[exp_name]) {
+        concurrency_logs[exp_name] = []
+      }
 
-    const report = getLastReportConcHist(exp_name)
-    report.report_time = report_generate_time
-    concurrency_logs[exp_name].push(report)
-    // }
+      const report = getLastReportConcHist(exp_name)
+      report.report_time = report_generate_time
+      concurrency_logs[exp_name].push(report)
+    }
   })
 
   logger.info('*** Concurrency report generated ***')
