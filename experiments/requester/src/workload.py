@@ -7,7 +7,6 @@ import time
 import requests
 
 http_path = os.getenv('HTTP_PATH')
-my_timezone = os.getenv('PY_TZ', 'US/Eastern')
 
 if http_path is None:
     print("HTTP_PATH environment variable is necessary!")
