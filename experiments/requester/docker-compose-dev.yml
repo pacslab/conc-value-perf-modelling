@@ -1,0 +1,11 @@
+version: "3"
+
+services:
+  worker:
+    build: .
+    ports:
+      - "8080:8080"
+    command: sleep infinity
+    volumes:
+      # - ./src:/opt/src
+      - $HOME_DIR/src:/opt/src
