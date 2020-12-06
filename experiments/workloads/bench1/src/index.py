@@ -3,6 +3,7 @@
 # signal handling imports
 import signal
 import sys
+import threading
 
 # flask imports
 from flask import Flask, request
@@ -13,6 +14,9 @@ import os
 from helpers import logger
 
 serve_port = os.getenv('PORT', 8080)
+
+# request processing lock
+proc_lock = threading.Lock()
 
 # add signal handling logic
 def handler_stop_signals(signum, frame):
@@ -51,7 +55,9 @@ def main_route(path):
     if is_true(raw_body):
         as_text = False
     
-    ret = handler.handle(request.get_data(as_text=as_text))
+    with proc_lock:
+        g.start = time.time()
+        ret = handler.handle(request.get_data(as_text=as_text))
     return ret
 
 
@@ -63,7 +69,7 @@ import time
 @app.before_request
 def before_request():
     logger.requestArrival()
-    g.start = time.time()
+    # g.start = time.time()
 
 @app.after_request
 def after_request(response):

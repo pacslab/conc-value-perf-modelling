@@ -4,3 +4,6 @@ README.md
 *.pyo
 *.pyd
 __pycache__
+.env.dev
+.env
+.dockerignore
