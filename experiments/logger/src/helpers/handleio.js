@@ -85,6 +85,18 @@ router.get('/logger/experiment_logs', (req, res) => {
 })
 
 // expose the logs on the web server
+router.get('/logger/conc_logs/:exp_name/last', (req, res) => {
+  const exp_name = req.params.exp_name
+  if (im.last_concurrency_reports[exp_name]) {
+    res.send(im.last_concurrency_reports[exp_name])
+  } else {
+    res.status(404).send({
+      err: 'Page Not Found!',
+    })
+  }
+})
+
+// expose the logs on the web server
 router.get('/logger/conc_logs/:exp_name', (req, res) => {
   const exp_name = req.params.exp_name
   if (im.concurrency_logs[exp_name]) {

@@ -7,6 +7,8 @@ const config = require('../config')
 const memoize = require("memoizee")
 
 const experiment_logs = {}
+let concurrency_logs = {}
+let last_concurrency_reports = {}
 
 const getExp = (exp_name) => {
   let experiment_obj = experiment_logs[exp_name]
@@ -134,12 +136,16 @@ let getLastReportConcHist = (exp_name) => {
     }
   }
 
-  return {
+  const ret_obj = {
     x: Object.keys(total_conc_hist).map(Number),
     y: Object.values(total_conc_hist).map(Number),
-    avg: get_hist_average(total_conc_hist), // calculate average concurrency on the latest window
+    avg: get_hist_average(total_conc_hist) || 0, // calculate average concurrency on the latest window
     running_instance_count,
   }
+
+  last_concurrency_reports[exp_name] = ret_obj
+
+  return ret_obj
 }
 
 // apply memoization to the function
@@ -232,24 +238,21 @@ const getExperimentStats = (exp_name) => {
   }
 }
 
-
-let concurrency_logs = {}
-
 // automatically log concurrency value
 setInterval(() => {
   const report_generate_time = Date.now()
   Object.keys(experiment_logs).forEach((exp_name) => {
     exp = getExp(exp_name)
     // if experiment has been recently updated in the last report interval
-    if (report_generate_time - exp.last_report < config.REPORT_INTERVAL) {
-      if (!concurrency_logs[exp_name]) {
-        concurrency_logs[exp_name] = []
-      }
-
-      const report = getLastReportConcHist(exp_name)
-      report.report_time = report_generate_time
-      concurrency_logs[exp_name].push(report)
+    // if (report_generate_time - exp.last_report < config.REPORT_INTERVAL) {
+    if (!concurrency_logs[exp_name]) {
+      concurrency_logs[exp_name] = []
     }
+
+    const report = getLastReportConcHist(exp_name)
+    report.report_time = report_generate_time
+    concurrency_logs[exp_name].push(report)
+    // }
   })
 
   logger.info('*** Concurrency report generated ***')
@@ -281,6 +284,7 @@ module.exports = {
   // attributes
   experiment_logs,
   concurrency_logs,
+  last_concurrency_reports,
   // functions
   recordConnection,
   recordDisconnection,
