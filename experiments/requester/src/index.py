@@ -1,43 +1,60 @@
-#! /usr/local/bin/python
+from workload import *
+import util
+import pytz
+from datetime import datetime
 
-import os
-import sys
-import time
+import pandas as pd
+# tqdm to monitor progress
+from tqdm.auto import tqdm
+tqdm.pandas()
 
-import requests
+# import my own modules
+from pacswg.timer import *
+import pacswg
 
-http_path = os.getenv('HTTP_PATH')
 
-if http_path is None:
-    print("HTTP_PATH environment variable is necessary!")
-    sys.exit(1)
+print('*** Clearing logger before getting started ***')
+util.clear_logger()
 
-print("Loaded HTTP path:", http_path)
+def perform_experiment():
+    wg = pacswg.WorkloadGenerator(worker_func=worker_func, rps=0, worker_thread_count=100)
+    wg.start_workers()
+    timer = TimerClass()
 
-def worker_func():
-    cmds = {}
-    cmds['sleep'] = 0
-    cmds['sleep_till'] = 0
-    cmds['stat'] = {"argv": 1}
-    cmds['io'] = {"rd": 3, "size": "200K", "cnt": 5}
-    cmds['cpu'] = {"n": 10000}
+    print("============ Experiment Started ============")
+    print("Time Started:", datetime.now().astimezone(pytz.timezone(my_timezone)))
 
-    payload = {}
-    payload['cmds'] = cmds
+    for rps in tqdm(rps_list):
+        wg.set_rps(rps)
+        timer.tic()
+        while timer.toc() < (time_per_step):
+            wg.fire_wait()
 
-    client_start_time = time.time()
-    res = requests.post(http_path, json=payload)
-    client_end_time = time.time()
-    r_parsed = res.json()
+    wg.stop_workers()
+    all_res = wg.get_stats()
+    print("Total Requests Made:", len(all_res))
 
-    if "stat" not in r_parsed:
-        print(r_parsed)
+    # Save The Results
+    df_res = pd.DataFrame(data=all_res)
+    now = datetime.now()
+    csv_filename = now.strftime('res-%Y-%m-%d_%H-%M-%S.csv')
+    df_res.to_csv(os.path.join('results', csv_filename))
 
-    return {
-        'is_cold': r_parsed['stat']['exist_id'] == r_parsed['stat']['new_id'],
-        'client_start_time': client_start_time,
-        'client_end_time': client_end_time,
-        'client_elapsed_time': client_end_time - client_start_time,
-    }
+    print("CSV File Name:", csv_filename)
 
-print(worker_func())
+def smooth_out_rps(tmp_rps_list):
+    # smooth it out
+    rps_list = []
+    for r in tmp_rps_list:
+        if len(rps_list) > 0:
+            rps_list.append((r + rps_list[-1])/2)        
+        rps_list.append(r)
+    return rps_list
+
+
+if __name__ == '__main__':
+    time_per_step = 10
+    rps_list = [2,2,2]
+
+
+    perform_experiment()

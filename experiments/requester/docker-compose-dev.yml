@@ -6,6 +6,8 @@ services:
     command: sleep infinity
     environment: 
       - "HTTP_PATH=$HTTP_PATH"
+      - "EXP_NAME=$EXP_NAME"
+      - "LOGGER_PATH=$LOGGER_PATH"
+      - "PY_TZ=US/Eastern"
     volumes:
-      # - ./src:/opt/src
       - $HOME_DIR/src:/opt/src
