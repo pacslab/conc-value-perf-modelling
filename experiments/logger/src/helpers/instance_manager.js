@@ -252,7 +252,7 @@ setInterval(() => {
     }
   })
 
-  logger.info('Concurrency report generated')
+  logger.info('*** Concurrency report generated ***')
 }, config.REPORT_INTERVAL);
 
 const clearLogs = () => {
