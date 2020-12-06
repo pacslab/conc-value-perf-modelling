@@ -7,9 +7,9 @@ KNCOMMAND="kn service apply bench1 --image ${DOCKER_IMAGE} \\
             --env EXPERIMENT_NAME=TEST1 \\
             --env REPORT_INTERVAL=10 \\
             --env SOCKETIO_SERVER=${1:-http://172.17.0.1:3000} \\
-            --concurrency-limit 5 \\
-            --concurrency-target 2 \\
-            --concurrency-utilization 70 \\
+            --concurrency-limit 10 \\
+            --concurrency-target 5 \\
+            --concurrency-utilization 90 \\
             --autoscale-window 60s \\
             --limit 'cpu=250m,memory=512Mi'"
 
