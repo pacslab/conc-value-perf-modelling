@@ -1,6 +1,7 @@
 
 // get logger info
 const logger = global.logger
+const config = require('../config')
 
 // for doing momization of stats
 const memoize = require("memoizee")
@@ -98,9 +99,20 @@ const recordRoutineReport = (msg) => {
   exp.last_report = report_time
 }
 
-const getLastReportConcHist = (exp_name) => {
+const get_hist_average = (hist_dict) => {
+  let mult_sum = 0;
+  let time_sum = 0;
+  for (let idx in hist_dict) {
+    mult_sum += Number(idx) * Number(hist_dict[idx])
+    time_sum += Number(hist_dict[idx])
+  }
+  return mult_sum /= time_sum
+}
+
+let getLastReportConcHist = (exp_name) => {
   let total_conc_hist = {}
   let report_generate_time = Date.now()
+  let running_instance_count = 0
   // loop through instances
   for (let i in experiment_logs[exp_name]) {
     let o = experiment_logs[exp_name][i]
@@ -108,7 +120,7 @@ const getLastReportConcHist = (exp_name) => {
     // if we have the latest report
     if (v) {
       // it only counts if the report has been in the past report period
-      if (report_generate_time - v.report_time < 10000) {
+      if (report_generate_time - v.report_time < config.REPORT_INTERVAL) {
         // for each entry in the log
         for (let idx = 0; idx < v.conc_values.length; idx++) {
           if (!total_conc_hist[v.conc_values[idx]]) {
@@ -116,6 +128,8 @@ const getLastReportConcHist = (exp_name) => {
           }
           total_conc_hist[v.conc_values[idx]] += v.conc_times[idx]
         }
+
+        running_instance_count++
       }
     }
   }
@@ -123,8 +137,13 @@ const getLastReportConcHist = (exp_name) => {
   return {
     x: Object.keys(total_conc_hist).map(Number),
     y: Object.values(total_conc_hist).map(Number),
+    avg: get_hist_average(total_conc_hist), // calculate average concurrency on the latest window
+    running_instance_count,
   }
 }
+
+// apply memoization to the function
+getLastReportConcHist = memoize(getLastReportConcHist, { length: false, maxAge: 1000 })
 
 const getExperimentStats = (exp_name) => {
   let instance_stats = []
@@ -214,12 +233,60 @@ const getExperimentStats = (exp_name) => {
 }
 
 
+let concurrency_logs = {}
+
+// automatically log concurrency value
+setInterval(() => {
+  const report_generate_time = Date.now()
+  Object.keys(experiment_logs).forEach((exp_name) => {
+    exp = getExp(exp_name)
+    // if experiment has been recently updated in the last report interval
+    if (report_generate_time - exp.last_report < config.REPORT_INTERVAL) {
+      if (!concurrency_logs[exp_name]) {
+        concurrency_logs[exp_name] = []
+      }
+
+      const report = getLastReportConcHist(exp_name)
+      report.report_time = report_generate_time
+      concurrency_logs[exp_name].push(report)
+    }
+  })
+
+  logger.info('Concurrency report generated')
+}, config.REPORT_INTERVAL);
+
+const clearLogs = () => {
+  for (let exp_name in experiment_logs) {
+    for (let node_id in experiment_logs[exp_name]) {
+      // remove node if already killed
+      if (experiment_logs[exp_name][node_id].kill_time) {
+        delete(experiment_logs[exp_name][node_id])
+      }
+      else {
+        for (let field of ['conc_hists', 'service_time_hists', 'latest_service_time_hist', 'latest_conc_hist']) {
+          delete(experiment_logs[exp_name][node_id][field])
+        }
+      }
+    }
+  }
+
+  // clear concurrency logs
+  concurrency_logs = {}
+
+  logger.warn('Logs cleared')
+}
+
+
 module.exports = {
+  // attributes
   experiment_logs,
+  concurrency_logs,
+  // functions
   recordConnection,
   recordDisconnection,
   recordKilled,
   recordRoutineReport,
   getExperimentStats: memoize(getExperimentStats, { length: false, maxAge: 1000 }),
   getLastReportConcHist,
+  clearLogs,
 }

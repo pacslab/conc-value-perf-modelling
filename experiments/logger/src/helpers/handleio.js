@@ -77,28 +77,29 @@ router.get('/logger/experiment_logs', (req, res) => {
     return {
       name: k,
       logs: `/logger/experiment_logs/${k}`,
-
+      conc_logs: `/logger/conc_logs/${k}`,
     }
   })
 
   res.send(result)
 })
 
+// expose the logs on the web server
+router.get('/logger/conc_logs/:exp_name', (req, res) => {
+  const exp_name = req.params.exp_name
+  if (im.concurrency_logs[exp_name]) {
+    res.send(im.concurrency_logs[exp_name])
+  } else {
+    res.status(404).send({
+      err: 'Page Not Found!',
+    })
+  }
+})
+
 // allow clearing the data
 router.get('/logger/clear', (req, res) => {
-  for (let exp_name in im.experiment_logs) {
-    for (let node_id in im.experiment_logs[exp_name]) {
-      // remove node if already killed
-      if (im.experiment_logs[exp_name][node_id].kill_time) {
-        delete(im.experiment_logs[exp_name][node_id])
-      }
-      else {
-        for (let field of ['conc_hists', 'service_time_hists', 'latest_service_time_hist', 'latest_conc_hist']) {
-          delete(im.experiment_logs[exp_name][node_id][field])
-        }
-      }
-    }
-  }
+  im.clearLogs()
+
   res.send('OK')
 })
 
