@@ -68,6 +68,7 @@ async def start_server(keep_running=True):
     try:
         await sio.connect(sio_server)
     except Exception:
+        await sio.sleep(1)
         await start_server(keep_running=False)
     while keep_running:
         await sio.sleep(0.1)
