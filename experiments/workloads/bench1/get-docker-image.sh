@@ -11,7 +11,9 @@ KNCOMMAND="kn service apply bench1 --image ${DOCKER_IMAGE} \\
             --concurrency-target 5 \\
             --concurrency-utilization 90 \\
             --autoscale-window 60s \\
-            --limit 'cpu=250m,memory=512Mi'"
+            --limit 'cpu=250m,memory=512Mi' \\
+            -a autoscaling.knative.dev/panicThresholdPercentage=1000
+            "
 
 printf "\nDocker Image:\n\t${DOCKER_IMAGE}\n"
 
