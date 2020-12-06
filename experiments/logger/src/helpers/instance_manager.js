@@ -273,7 +273,7 @@ const clearLogs = () => {
   // clear concurrency logs
   concurrency_logs = {}
 
-  logger.warn('Logs cleared')
+  logger.warn('*** Logs cleared ***')
 }
 
 
