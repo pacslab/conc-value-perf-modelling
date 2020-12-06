@@ -280,7 +280,9 @@ const clearLogs = () => {
   }
 
   // clear concurrency logs
-  concurrency_logs = {}
+  for (let exp_name in concurrency_logs) {
+    delete(concurrency_logs[exp_name])
+  }
 
   logger.warn('*** Logs cleared ***')
 }
