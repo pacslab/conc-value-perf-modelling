@@ -33,10 +33,11 @@ def worker_func():
     client_end_time = time.time()
     r_parsed = res.json()
 
-    if "stat" not in r_parsed:
+    if "stat" not in r_parsed or r_parsed['stat'] is None:
         print(r_parsed)
 
     return {
+        # this doesn't work with cloud run
         'is_cold': r_parsed['stat']['exist_id'] == r_parsed['stat']['new_id'],
         'client_start_time': client_start_time,
         'client_end_time': client_end_time,

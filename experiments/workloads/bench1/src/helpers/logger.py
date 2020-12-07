@@ -173,7 +173,7 @@ def calculateServiceTimeHistogram():
     
 
 def sendReports():
-    print('Sending report...')
+    # print('Sending report...')
     # first, calculate histogram
     conc_histogram = calculateConcHistogram()
     service_histogram = calculateServiceTimeHistogram()
