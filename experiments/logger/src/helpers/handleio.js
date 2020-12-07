@@ -108,10 +108,26 @@ router.get('/logger/conc_logs/:exp_name', (req, res) => {
   }
 })
 
+router.post('/logger/conc_logs/:exp_name/client', (req, res) => {
+  const exp_name = req.params.exp_name
+  const conc_value = req.body.conc_value
+
+  if (conc_value === undefined) {
+    res.status(400).send('You need to specify conc_value')
+  }
+  im.setClientConc(exp_name, Number(conc_value))
+
+  res.send('OK')
+})
+
+router.get('/logger/conc_logs/:exp_name/client', (req, res) => {
+  const exp_name = req.params.exp_name
+  res.send(im.getClientConc(exp_name))
+})
+
 // allow clearing the data
 router.get('/logger/clear', (req, res) => {
   im.clearLogs()
-
   res.send('OK')
 })
 

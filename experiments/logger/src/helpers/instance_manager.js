@@ -9,6 +9,31 @@ const memoize = require("memoizee")
 const experiment_logs = {}
 let concurrency_logs = {}
 let last_concurrency_reports = {}
+const client_conc_logs = {}
+
+const setClientConc = (exp_name, conc_value) => {
+  const report_generate_time = Date.now()
+  if (!client_conc_logs[exp_name]) {
+    client_conc_logs[exp_name] = {}
+  }
+
+  client_conc_logs[exp_name].last_value = conc_value
+  client_conc_logs[exp_name].last_report = report_generate_time
+}
+
+const getClientConc = (exp_name) => {
+  if(!client_conc_logs[exp_name]) {
+    return {
+      value: 0,
+      report_time: 0,
+    }
+  }
+
+  return {
+    value: client_conc_logs[exp_name].last_value,
+    report_time: client_conc_logs[exp_name].last_report
+  }
+}
 
 const getExp = (exp_name) => {
   let experiment_obj = experiment_logs[exp_name]
@@ -140,6 +165,7 @@ let getLastReportConcHist = (exp_name) => {
     x: Object.keys(total_conc_hist).map(Number),
     y: Object.values(total_conc_hist).map(Number),
     avg: get_hist_average(total_conc_hist) || 0, // calculate average concurrency on the latest window
+    client_conc: getClientConc(exp_name)['value'],
     running_instance_count,
   }
 
@@ -284,6 +310,10 @@ const clearLogs = () => {
     delete(concurrency_logs[exp_name])
   }
 
+  for (let exp_name in client_conc_logs) {
+    delete(client_conc_logs[exp_name])
+  }  
+
   logger.warn('*** Logs cleared ***')
 }
 
@@ -300,5 +330,7 @@ module.exports = {
   recordRoutineReport,
   getExperimentStats: memoize(getExperimentStats, { length: false, maxAge: 1000 }),
   getLastReportConcHist,
+  setClientConc,
+  getClientConc,
   clearLogs,
 }

@@ -56,6 +56,11 @@ def smooth_out_rps(tmp_rps_list):
 if __name__ == '__main__':
     time_per_step = 60
     #rps_list = [2,2,2]
-    rps_list = [i for i in range(1, 10)] + [10] * 60
+    rps_list = [i for i in range(1, 5)] + [5] * 60
     print(rps_list)
+
+    # start concurrency report thread
+    t1 = threading.Thread(target=report_conc_loop, args=(), daemon=True)
+    t1.start()
+
     perform_experiment()
