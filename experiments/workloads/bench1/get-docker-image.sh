@@ -7,13 +7,13 @@ KNCOMMAND="kn service apply bench1 --image ${DOCKER_IMAGE} \\
             --env EXPERIMENT_NAME=TEST1 \\
             --env REPORT_INTERVAL=10 \\
             --env SOCKETIO_SERVER=${1:-http://172.17.0.1:3000} \\
-            --concurrency-limit 10 \\
-            --concurrency-target 5 \\
-            --concurrency-utilization 90 \\
-            --autoscale-window 60s \\
-            -a autoscaling.knative.dev/window=60s \\
             --limit 'cpu=250m,memory=256Mi' \\
-            -a autoscaling.knative.dev/panicThresholdPercentage=1000
+            --concurrency-limit 5 \\
+            -a autoscaling.knative.dev/panicThresholdPercentage=1000 \\
+            # --concurrency-target 5 \\
+            # --concurrency-utilization 90 \\
+            # --autoscale-window 60s \\
+            # -a autoscaling.knative.dev/window=60s
             "
 
 GCP_PROJECT_ID=${GCP_PROJECT_ID:-PROJECTID}
@@ -36,6 +36,7 @@ GCPRUNCOMMAND="
         # list container images
         gcloud container images list-tags gcr.io/$GCP_PROJECT_ID/bench1
         gcloud container images delete gcr.io/$GCP_PROJECT_ID/bench1:sha-$GIT_SHA
+        # now you need to delete the s3 bucket automatically created
 "
 
 printf "\nDocker Image:\n\t${DOCKER_IMAGE}\n"

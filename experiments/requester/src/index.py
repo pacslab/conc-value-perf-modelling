@@ -56,6 +56,6 @@ def smooth_out_rps(tmp_rps_list):
 if __name__ == '__main__':
     time_per_step = 60
     #rps_list = [2,2,2]
-    rps_list = [10] * 60
-
+    rps_list = [i for i in range(1, 10)] + [10] * 60
+    print(rps_list)
     perform_experiment()
