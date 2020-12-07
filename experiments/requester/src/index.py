@@ -57,6 +57,7 @@ if __name__ == '__main__':
     time_per_step = 60
     #rps_list = [2,2,2]
     rps_list = [i for i in range(1, 5)] + [5] * 60
+    # rps_list = [5] * 60
     print(rps_list)
 
     # start concurrency report thread

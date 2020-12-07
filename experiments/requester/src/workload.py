@@ -4,6 +4,7 @@ import os
 import sys
 import time
 import threading
+import random
 
 import requests
 
@@ -50,11 +51,11 @@ def report_conc_loop():
 
 def worker_func():
     cmds = {}
-    cmds['sleep'] = 0
+    cmds['sleep'] = 400 + (random.random() * 200)
     cmds['sleep_till'] = 0
     # cmds['stat'] = {"argv": 1}
 
-    cmds['cpu'] = {"n": 20000}
+    # cmds['cpu'] = {"n": 20000}
 
     # cmds['io'] = {"rd": 3, "size": "200K", "cnt": 5}
     # cmds['cpu'] = {"n": 10000}
