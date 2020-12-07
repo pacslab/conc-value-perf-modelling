@@ -19,8 +19,11 @@ def worker_func():
     cmds['sleep'] = 0
     cmds['sleep_till'] = 0
     cmds['stat'] = {"argv": 1}
+
+    cmds['cpu'] = {"n": 20000}
+
     # cmds['io'] = {"rd": 3, "size": "200K", "cnt": 5}
-    cmds['cpu'] = {"n": 10000}
+    # cmds['cpu'] = {"n": 10000}
 
     payload = {}
     payload['cmds'] = cmds
