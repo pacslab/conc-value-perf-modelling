@@ -16,6 +16,9 @@ sudo reboot
 curl -sSL  https://nimamahmoudi.github.io/cicd-cheatsheet/sh/install-docker.sh | bash
 # install docker-compose
 sudo apt-get update && sudo apt install -qy python3-pip && pip3 install docker-compose
+# alternative docker-compose installation if the previous one didn't work
+sudo curl -L "https://github.com/docker/compose/releases/download/1.26.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
 
 # install arkade
 curl -SLfs https://dl.get-arkade.dev | sudo sh
