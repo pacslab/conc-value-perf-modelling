@@ -67,7 +67,8 @@ async def connect():
 async def start_server(keep_running=True):
     try:
         await sio.connect(sio_server)
-    except Exception:
+    except Exception as e:
+        print("SIO Connect Exception:", e)
         await sio.sleep(1)
         await start_server(keep_running=False)
     while keep_running:
