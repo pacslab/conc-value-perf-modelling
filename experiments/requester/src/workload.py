@@ -51,7 +51,7 @@ def report_conc_loop():
 
 def worker_func():
     cmds = {}
-    cmds['sleep'] = 400 + (random.random() * 200)
+    cmds['sleep'] = 200 + (random.random() * 200)
     cmds['sleep_till'] = 0
     # cmds['stat'] = {"argv": 1}
 
@@ -88,4 +88,4 @@ def worker_func():
 
 if __name__ == '__main__':
     print(worker_func())
-    report_conc_loop()
+    # report_conc_loop()

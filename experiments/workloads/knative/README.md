@@ -101,3 +101,24 @@ kn service ls
 
 To create services using `kn` check out the [kn apply documentations](https://github.com/knative/client/blob/master/docs/cmd/kn_service_apply.md).
 
+
+## Alternative Minikube Installation
+
+```sh
+# install minikube
+curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube_latest_amd64.deb
+sudo dpkg -i minikube_latest_amd64.deb
+# configure minikube
+minikube config set cpus 4
+minikube config set memory 14336
+# start cluster
+minikube start
+
+# forward the port (run in a separate terminal)
+minikube tunnel
+
+# now, move back to the top and install knative
+# get the ip of the kourier service from kubectl get svc -n kourier-system
+# and use that to path the knative installation
+```
+
