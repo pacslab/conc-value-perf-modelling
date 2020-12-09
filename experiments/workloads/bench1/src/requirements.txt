@@ -1,4 +1,4 @@
 flask
 # waitress
-python-socketio[asyncio_client]
+python-socketio[asyncio_client]==4.6.1
 nest_asyncio
