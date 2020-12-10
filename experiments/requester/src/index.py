@@ -1,4 +1,5 @@
 from workload import *
+import logger_api
 import util
 import pytz
 from datetime import datetime
@@ -38,10 +39,21 @@ def perform_experiment():
     # Save The Results
     df_res = pd.DataFrame(data=all_res)
     now = datetime.now()
-    csv_filename = now.strftime('res-%Y-%m-%d_%H-%M-%S.csv')
+    res_name = now.strftime('res-%Y-%m-%d_%H-%M-%S')
+    csv_filename = res_name + '.csv'
     df_res.to_csv(os.path.join('results', csv_filename))
+    # get logger logs and save as json
+    conc_data = logger_api.get_conc_log_history()
+    conc_file_path = os.path.join('results', res_name + '_conc.json')
+    logger_api.save_json_file(conc_data, conc_file_path)
+    # get stats
+    stats_data = logger_api.get_long_term_stats()
+    stats_file_path = os.path.join('results', res_name + '_stats.json')
+    logger_api.save_json_file(stats_data, stats_file_path)
 
     print("CSV File Name:", csv_filename)
+    print("Conc JSON File:", conc_file_path)
+    print("Stats JSON File:", stats_file_path)
 
 def smooth_out_rps(tmp_rps_list):
     # smooth it out
@@ -55,8 +67,8 @@ def smooth_out_rps(tmp_rps_list):
 
 if __name__ == '__main__':
     time_per_step = 60
-    #rps_list = [2,2,2]
-    rps_list = [i for i in range(1, 5)] + [5] * 60
+    rps_list = [2,2,2]
+    # rps_list = [i for i in range(1, 5)] + [5] * 60
     # rps_list = [5] * 60
     print(rps_list)
 

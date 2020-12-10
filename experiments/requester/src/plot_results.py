@@ -58,9 +58,10 @@ def parse_csv_file(csv_file):
     df = df.set_index('client_start_time_dt')
     return df
 
-
 if __name__ == "__main__":
-    csv_file = 'results/res-2020-12-09_02-37-24.csv'
+    results_folder = 'results/'
+    res_name = 'res-2020-12-09_02-37-24'
+    csv_file = results_folder + res_name + '.csv'
     fig_folder = 'figs/'
     df = parse_csv_file(csv_file)
     print(df.head())

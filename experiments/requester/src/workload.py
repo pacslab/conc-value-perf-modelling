@@ -70,7 +70,8 @@ def worker_func():
         client_end_time = time.time()
         r_parsed = res.json()
     except:
-        pass
+        client_start_time = -1
+        client_end_time = -1
     finally:
         dec_conc()
 
