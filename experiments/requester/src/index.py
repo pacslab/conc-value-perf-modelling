@@ -3,6 +3,7 @@ import logger_api
 import util
 import pytz
 import sys
+import time
 from datetime import datetime
 
 import pandas as pd
@@ -91,10 +92,14 @@ if __name__ == '__main__':
     t1.start()
 
 
-    for rps in list(range(1,11)) + list(range(15, 51, 5)):
-        rps_list = [rps] * 3
+    for _ in range(3):
+        for rps in list(range(1,11)) + list(range(15, 51, 5)):
+            rps_list = [rps] * 3
 
-        info_data['rps_list'] = rps_list
+            info_data['rps_list'] = rps_list
 
-        print(info_data)
-        perform_experiment(rps_list, info_data)
+            print(info_data)
+            perform_experiment(rps_list, info_data)
+
+        # wait to get back to initial state
+        time.sleep(3*60)
