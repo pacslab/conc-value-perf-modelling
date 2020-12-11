@@ -8,9 +8,9 @@ KNCOMMAND="kn service apply bench1 --image ${DOCKER_IMAGE} \\
             --env REPORT_INTERVAL=10 \\
             --env SOCKETIO_SERVER=${1:-http://172.17.0.1:3000} \\
             --limit 'cpu=250m,memory=256Mi' \\
-            --concurrency-limit 5 \\
-            -a autoscaling.knative.dev/panicThresholdPercentage=1000 \\
-            # --concurrency-target 5 \\
+            --concurrency-target 1 \\
+            # -a autoscaling.knative.dev/panicThresholdPercentage=1000 \\
+            # --concurrency-limit 5 \\
             # --concurrency-utilization 90 \\
             # --autoscale-window 60s \\
             # -a autoscaling.knative.dev/window=60s
