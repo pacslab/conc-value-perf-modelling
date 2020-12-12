@@ -17,10 +17,11 @@ import pacswg
 
 my_timezone = os.getenv('PY_TZ', 'US/Eastern')
 
-print('*** Clearing logger before getting started ***')
-util.clear_logger()
-
 def perform_experiment(rps_list, info_data):
+    print('*** Clearing logger before getting started ***')
+    util.clear_logger()
+    reset_conc()
+
     wg = pacswg.WorkloadGenerator(worker_func=worker_func, rps=0, worker_thread_count=100)
     wg.start_workers()
     timer = TimerClass()

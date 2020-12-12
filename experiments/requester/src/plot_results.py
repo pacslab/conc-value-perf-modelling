@@ -10,8 +10,6 @@ from datetime import datetime
 import pytz
 
 # constants
-logger_path = os.getenv('LOGGER_PATH', 'http://172.17.0.1:3000')
-exp_name = os.getenv('EXPERIMENT_NAME', 'DEFAULT_EXPERIMENT')
 my_timezone = os.getenv('PY_TZ', 'US/Eastern')
 
 # plotting and analyzing functionality

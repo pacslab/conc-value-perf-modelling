@@ -33,6 +33,11 @@ def dec_conc():
     with conc_lock:
         conc_count -= 1
 
+def reset_conc():
+    global conc_count
+    with conc_lock:
+        conc_count = 0
+
 def report_conc_loop():
     global conc_count
 
