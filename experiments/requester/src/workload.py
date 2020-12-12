@@ -71,9 +71,11 @@ def worker_func():
 
     inc_conc()
     try:
+        start_conc = conc_count
         client_start_time = time.time()
         res = requests.post(http_path, json=payload)
         client_end_time = time.time()
+        end_conc = conc_count
         r_parsed = res.json()
     except:
         client_start_time = -1
@@ -90,7 +92,8 @@ def worker_func():
         'client_start_time': client_start_time,
         'client_end_time': client_end_time,
         'client_elapsed_time': client_end_time - client_start_time,
-        'conc_count': conc_count,
+        'start_conc': start_conc,
+        'end_conc': end_conc,
     }
 
 if __name__ == '__main__':
