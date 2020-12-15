@@ -7,3 +7,5 @@ __pycache__
 .env.dev
 .env
 .dockerignore
+tmp.zip
+src/tmp.zip
