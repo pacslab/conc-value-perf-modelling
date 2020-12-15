@@ -94,7 +94,7 @@ if __name__ == '__main__':
 
 
     for _ in range(3):
-        for rps in list(range(1,11)) + list(range(15, 51, 5)):
+        for rps in list(range(1,11)) + list(range(15, 41, 5)):
             rps_list = [rps] * 20
 
             info_data['rps_list'] = rps_list

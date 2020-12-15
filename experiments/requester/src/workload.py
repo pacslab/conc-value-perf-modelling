@@ -80,6 +80,7 @@ def worker_func():
     except:
         client_start_time = -1
         client_end_time = -1
+        end_conc = -1
     finally:
         dec_conc()
 
