@@ -1,4 +1,4 @@
-name: API Docker CI
+name: Workload Docker CI
 
 on:
   push:
