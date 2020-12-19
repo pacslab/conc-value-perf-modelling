@@ -122,3 +122,30 @@ minikube tunnel
 # and use that to path the knative installation
 ```
 
+## Mikrok8s Installation
+
+```sh
+# source: https://microk8s.io/
+
+# install microk8s
+sudo snap install microk8s --classic
+
+# change user permissions
+# get user permission settings from running the following (it will print commands)
+microk8s status --wait-ready
+# run again after fixing the user permissions
+microk8s status --wait-ready
+
+# create an alias for microk8s
+echo "alias mk=microk8s" >> ~/.bashrc
+echo "alias k=\"microk8s kubectl\"" >> ~/.bashrc
+source ~/.bashrc
+
+# turn on necessary services
+mk enable dns ingress metrics-server metallb istio
+# get the istio ingress ip for setting xip settings, then do the config as instructed above
+kubectl --namespace istio-system get service istio-ingressgateway
+```
+
+Then, you can follow the [official istio-based installation docs](https://knative.dev/docs/install/any-kubernetes-cluster/#installing-the-serving-component).
+
