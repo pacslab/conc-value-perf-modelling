@@ -132,17 +132,23 @@ sudo snap install microk8s --classic
 
 # change user permissions
 # get user permission settings from running the following (it will print commands)
-microk8s status --wait-ready
+sudo usermod -a -G microk8s $USER
+sudo chown -f -R $USER ~/.kube
+# restart for changes to take effect
+sudo reboot
 # run again after fixing the user permissions
 microk8s status --wait-ready
 
 # create an alias for microk8s
 echo "alias mk=microk8s" >> ~/.bashrc
-echo "alias k=\"microk8s kubectl\"" >> ~/.bashrc
+echo "alias k='microk8s kubectl'" >> ~/.bashrc
 source ~/.bashrc
 
+# save config to kubectl's config
+microk8s config > ~/.kube/config
+
 # turn on necessary services
-mk enable dns ingress metrics-server metallb istio
+mk enable dns ingress storage metrics-server metallb istio
 # get the istio ingress ip for setting xip settings, then do the config as instructed above
 kubectl --namespace istio-system get service istio-ingressgateway
 ```
