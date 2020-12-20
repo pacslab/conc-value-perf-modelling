@@ -56,12 +56,13 @@ def report_conc_loop():
 
 def worker_func():
     cmds = {}
-    # cmds['sleep'] = 400 + (random.random() * 200)
     cmds['sleep'] = 0
     cmds['sleep_till'] = 0
     cmds['stat'] = {"argv": 1}
 
-    cmds['cpu'] = {"n": 10000}
+    # cmds['cpu'] = {"n": 10000}
+
+    cmds['sleep'] = 50 + (random.random() * 100)
 
     # cmds['io'] = {"rd": 3, "size": "200K", "cnt": 5}
     # cmds['cpu'] = {"n": 10000}
