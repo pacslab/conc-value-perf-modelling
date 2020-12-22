@@ -9,3 +9,7 @@ services:
     volumes:
       # - ./src:/opt/src
       - $HOME_DIR/src:/opt/src
+    # resource limits
+    cpu_percent: 25
+    cpu_count: 1
+    mem_limit: 256M
