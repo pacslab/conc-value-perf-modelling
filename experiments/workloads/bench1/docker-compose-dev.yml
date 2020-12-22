@@ -1,4 +1,4 @@
-version: "3"
+version: "3.7"
 
 services:
   worker:
@@ -10,6 +10,9 @@ services:
       # - ./src:/opt/src
       - $HOME_DIR/src:/opt/src
     # resource limits
-    cpu_percent: 25
-    cpu_count: 1
-    mem_limit: 256M
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+

@@ -7,7 +7,7 @@ export $(cat .env.dev | grep ^[A-Z] | xargs)
 export HOME_DIR=${HOME_DIR:-$(pwd)}
 
 # start the container
-docker-compose -f docker-compose-dev.yml up --build -d
+docker-compose -f docker-compose-dev.yml --compatibility up --build -d
 # run bash
 docker-compose -f docker-compose-dev.yml exec --user root worker bash
 # tear everything down
