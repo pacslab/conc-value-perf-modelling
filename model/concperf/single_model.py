@@ -2,6 +2,8 @@ import itertools
 import numpy as np
 
 # generate states and encode/decode between idx and state
+
+
 class StateCoder:
     def __init__(self, config, ):
         self.state_list = StateCoder.generate_state_list(config['max_conc'])
@@ -55,7 +57,9 @@ def get_single_container_q(single_coder, config):
             to_req_count = from_req_count - 1
             to_state = encode_state(to_req_count)
             to_state_idx = single_coder.to_idx(to_state)
-            Q[from_state_idx, to_state_idx] = from_req_count / (1+(from_req_count - 1)*config['alpha']) / config['base_service_time']
+            Q[from_state_idx, to_state_idx] = from_req_count / \
+                (1+(from_req_count - 1) *
+                 config['alpha']) / config['base_service_time']
             exit_rate += Q[from_state_idx, to_state_idx]
         if from_req_count < config['max_conc']:
             to_req_count = from_req_count + 1
@@ -63,7 +67,7 @@ def get_single_container_q(single_coder, config):
             to_state_idx = single_coder.to_idx(to_state)
             Q[from_state_idx, to_state_idx] = config['arrival_rate_server']
             exit_rate += Q[from_state_idx, to_state_idx]
-        
+
         Q[from_state_idx, from_state_idx] = -1 * exit_rate
 
     return Q
