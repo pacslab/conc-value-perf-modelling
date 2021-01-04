@@ -65,6 +65,17 @@ def solve_CTMC(Q):
     return solution
 
 
+def solve_DTMC(P):
+    # 1 - Solve DTMC for pi
+    # https://towardsdatascience.com/markov-chain-analysis-and-simulation-using-python-4507cee0b06e
+    num_states = P.shape[0]
+    A = np.append(P.T-np.eye(num_states), np.ones((1, num_states)), axis=0)
+    b = np.zeros(num_states + 1)
+    b[-1] = 1
+    pi = np.linalg.solve((A.T).dot(A), (A.T).dot(b))
+    return pi
+
+
 def get_trans_probs(state_count, transition_rate_base, max_t=2):
     next_ready_counts = list(range(state_count))
     next_ready_counts = np.array(next_ready_counts)
