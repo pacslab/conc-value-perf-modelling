@@ -2,6 +2,7 @@ import itertools
 
 import numpy as np
 from .single_model import StateCoder as SingleStateCoder
+from . import utility
 
 
 class StateCoder(SingleStateCoder):
@@ -48,3 +49,19 @@ def get_new_order_dist(req_count_averaged_vals, req_count_averaged_probs, config
             dist_ordered_inst[inst_count] += prob
 
     return np.array(list(dist_ordered_inst.keys())), np.array(list(dist_ordered_inst.values()))
+
+
+# calculate probability of transitions to other ready containers
+def get_trans_probabilities(ready_count, ordered_count, config):
+    if ordered_count == ready_count:
+        vals = [ ordered_count ]
+        probs = [ 1 ]
+    if ordered_count > ready_count:
+        possible_state_count = ordered_count - ready_count + 1
+        vals = range(ready_count, ordered_count + 1)
+        probs = utility.get_trans_probs(possible_state_count, transition_rate_base=config['provision_rate_base'], max_t=config['autoscaling_interval'])
+    else:
+        possible_state_count = ready_count - ordered_count + 1
+        vals = range(ready_count, ordered_count - 1, -1)
+        probs = utility.get_trans_probs(possible_state_count, transition_rate_base=config['deprovision_rate_base'], max_t=config['autoscaling_interval'])
+    return np.array(vals), np.array(probs)
