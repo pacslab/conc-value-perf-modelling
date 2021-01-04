@@ -20,11 +20,13 @@ class StateCoder(SingleStateCoder):
 
 def get_min_max_new_order(config):
     ready_count = config['instance_count']
-    min_new_order = int(np.ceil(ready_count / config['max_scale_down_rate']))
-    max_new_order = int(np.floor(ready_count * config['max_scale_up_rate']))
+    min_new_order = int(np.floor(ready_count / config['max_scale_down_rate']))
+    max_new_order = int(np.ceil(ready_count * config['max_scale_up_rate']))
     # we can add at least 1 container
     max_new_order = max(max_new_order, ready_count + 1)
     max_new_order = min(max_new_order, config['max_container_count'])
+    # we can deduct at least 1 container
+    min_new_order = min(min_new_order, ready_count - 1)
     # no scale down in panic mode
     # if status == 'p':
     #     min_new_order = ready_count
