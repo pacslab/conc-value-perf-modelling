@@ -79,7 +79,7 @@ def solve_DTMC(P):
 def get_trans_probs(state_count, transition_rate_base, max_t=2):
     next_ready_counts = list(range(state_count))
     next_ready_counts = np.array(next_ready_counts)
-    trans_rates = (next_ready_counts + 1) * transition_rate_base
+    trans_rates = (state_count - next_ready_counts - 1) * transition_rate_base
 
     Q = np.zeros((state_count, state_count))
     # our initial state
