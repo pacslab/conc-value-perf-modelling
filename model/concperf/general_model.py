@@ -1,8 +1,12 @@
 import itertools
 
 import numpy as np
+import pandas as pd
+from tqdm.auto import tqdm
+
 from .single_model import StateCoder as SingleStateCoder
 from . import utility
+from . import single_model
 
 
 class StateCoder(SingleStateCoder):
@@ -67,3 +71,87 @@ def get_trans_probabilities(ready_count, ordered_count, config):
         vals = range(ready_count, ordered_count - 1, -1)
         probs = utility.get_trans_probs(possible_state_count, transition_rate_base=config['deprovision_rate_base'], max_t=config['autoscaling_interval'])
     return np.array(vals), np.array(probs)
+
+def solve_general_model(model_config, update_config, debug=False):
+
+    # create state coders
+    single_coder = single_model.StateCoder(config=model_config)
+    general_state_coder = StateCoder(model_config)
+
+    if debug:
+        print('Number of states:', general_state_coder.get_state_count())
+
+    state_count = general_state_coder.get_state_count()
+    general_P = np.zeros((state_count, state_count))
+    inst_count_possible_values = list(range(0, model_config['max_container_count']+1))
+    inst_count_possible_values = np.array(inst_count_possible_values)
+
+    for ready_inst_count in tqdm(inst_count_possible_values):
+        # add instance count to config
+        model_config.update({
+            'instance_count': max(ready_inst_count, 1), # for 0 ready containers, solve CC with single server
+        })
+
+        # update the config
+        update_config(model_config)
+
+        # calculate and show Q
+        single_Q = single_model.get_single_container_q(single_coder, config=model_config)
+        # display(pd.DataFrame(single_Q))
+
+        req_count_prob = utility.solve_CTMC(single_Q)
+        req_df = pd.DataFrame(data = {
+            'req_count': [s[0] for s in single_coder.get_state_list()],
+            'req_count_prob': req_count_prob,
+        })
+
+        # if 0 instances, any value for request count over 0 causes transition to 1 instances
+        if ready_inst_count == 0:
+            new_order_vals = [0, 1]
+            new_order_probs_zero = req_df['req_count_prob'][req_df['req_count'] == 0][0]
+            new_order_probs_one = 1 - new_order_probs_zero
+            new_order_probs = [new_order_probs_zero, new_order_probs_one]
+        else:
+            # calculate measure concurrency distribution
+            avg_count = model_config['stable_conc_avg_count']
+            import time
+            start_time = time.time()
+            req_count_averaged_vals, req_count_averaged_probs = utility.get_averaged_distribution(vals=req_df['req_count'], probs=req_df['req_count_prob'], avg_count=avg_count)
+            # print(f"new order calculation took {time.time() - start_time} seconds for {ready_inst_count} instances")
+
+            # calculate probability of different ordered instance count
+            new_order_vals, new_order_probs = get_new_order_dist(req_count_averaged_vals, req_count_averaged_probs, model_config)
+
+        # now calculate probs according to number of ordered instances
+        for ordered_inst_count in inst_count_possible_values:
+            # get idx of the "from" state
+            from_state_idx = general_state_coder.to_idx(state=(ordered_inst_count, ready_inst_count))
+
+            # calculate probability of number of ready instances
+            next_ready_vals, next_ready_probs = get_trans_probabilities(ready_count=ready_inst_count, ordered_count=ordered_inst_count, config=model_config)
+
+            # calculate probability for all combinations of "to" states
+            for new_order_idx, next_ready_idx in itertools.product(range(len(new_order_vals)), range(len(next_ready_vals))):
+                new_order_val = new_order_vals[new_order_idx]
+                new_order_prob = new_order_probs[new_order_idx]
+                next_ready_val = next_ready_vals[next_ready_idx]
+                next_ready_prob = next_ready_probs[next_ready_idx]
+
+                to_state_idx = general_state_coder.to_idx(state=(new_order_val, next_ready_val))
+                general_P[from_state_idx, to_state_idx] = new_order_prob * next_ready_prob
+
+    if debug:
+        # when everything is fixed, this should all be ones (almost, because of rounding errors)
+        print('valuees in P that are far from 1 (threshold of 1e-6): ', np.where((general_P.sum(axis=1)-1) > 1e-6))
+        # we don't want to be stuck in a specific state
+        print('index of values in P that are equal to 1 (stuck forever): ', np.where(general_P == 1))
+
+    inst_count_probs = utility.solve_DTMC(general_P)
+    ready_probs = inst_count_probs.reshape((len(inst_count_possible_values),-1)).sum(axis=0)
+    ordered_probs = inst_count_probs.reshape((len(inst_count_possible_values),-1)).sum(axis=1)
+
+    return {
+        'inst_count_probs': inst_count_probs,
+        'ready_probs': ready_probs,
+        'ordered_probs': ordered_probs,
+    }
