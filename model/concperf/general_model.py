@@ -1,7 +1,6 @@
 import itertools
 
 import numpy as np
-import pandas as pd
 from tqdm.auto import tqdm
 
 from .single_model import StateCoder as SingleStateCoder
@@ -72,7 +71,7 @@ def get_trans_probabilities(ready_count, ordered_count, config):
         probs = utility.get_trans_probs(possible_state_count, transition_rate_base=config['deprovision_rate_base'], max_t=config['autoscaling_interval'])
     return np.array(vals), np.array(probs)
 
-def solve_general_model(model_config, update_config, debug=False):
+def solve_general_model(model_config, update_config, debug=False, show_progress=False):
 
     # create state coders
     single_coder = single_model.StateCoder(config=model_config)
@@ -85,8 +84,14 @@ def solve_general_model(model_config, update_config, debug=False):
     general_P = np.zeros((state_count, state_count))
     inst_count_possible_values = list(range(0, model_config['max_container_count']+1))
     inst_count_possible_values = np.array(inst_count_possible_values)
-
-    for ready_inst_count in tqdm(inst_count_possible_values):
+    all_req_count_prob = []
+    req_count_value = np.array([s[0] for s in single_coder.get_state_list()])
+    
+    if show_progress:
+        iterable_inst_count_possible_values = tqdm(inst_count_possible_values, position=0)
+    else:
+        iterable_inst_count_possible_values = inst_count_possible_values
+    for ready_inst_count in iterable_inst_count_possible_values:
         # add instance count to config
         model_config.update({
             'instance_count': max(ready_inst_count, 1), # for 0 ready containers, solve CC with single server
@@ -100,15 +105,12 @@ def solve_general_model(model_config, update_config, debug=False):
         # display(pd.DataFrame(single_Q))
 
         req_count_prob = utility.solve_CTMC(single_Q)
-        req_df = pd.DataFrame(data = {
-            'req_count': [s[0] for s in single_coder.get_state_list()],
-            'req_count_prob': req_count_prob,
-        })
+        all_req_count_prob.append(req_count_prob)
 
         # if 0 instances, any value for request count over 0 causes transition to 1 instances
         if ready_inst_count == 0:
             new_order_vals = [0, 1]
-            new_order_probs_zero = req_df['req_count_prob'][req_df['req_count'] == 0][0]
+            new_order_probs_zero = req_count_prob[req_count_value == 0][0]
             new_order_probs_one = 1 - new_order_probs_zero
             new_order_probs = [new_order_probs_zero, new_order_probs_one]
         else:
@@ -116,8 +118,9 @@ def solve_general_model(model_config, update_config, debug=False):
             avg_count = model_config['stable_conc_avg_count']
             import time
             start_time = time.time()
-            req_count_averaged_vals, req_count_averaged_probs = utility.get_averaged_distribution(vals=req_df['req_count'], probs=req_df['req_count_prob'], avg_count=avg_count)
-            # print(f"new order calculation took {time.time() - start_time} seconds for {ready_inst_count} instances")
+            req_count_averaged_vals, req_count_averaged_probs = utility.get_averaged_distribution(vals=req_count_value, probs=req_count_prob, avg_count=avg_count)
+            if debug:
+                print(f"new order calculation took {time.time() - start_time} seconds for {ready_inst_count} instances")
 
             # calculate probability of different ordered instance count
             new_order_vals, new_order_probs = get_new_order_dist(req_count_averaged_vals, req_count_averaged_probs, model_config)
@@ -151,7 +154,31 @@ def solve_general_model(model_config, update_config, debug=False):
     ordered_probs = inst_count_probs.reshape((len(inst_count_possible_values),-1)).sum(axis=1)
 
     return {
+        'inst_count_possible_values': inst_count_possible_values,
         'inst_count_probs': inst_count_probs,
         'ready_probs': ready_probs,
         'ordered_probs': ordered_probs,
+        'req_count_probs': np.array(all_req_count_prob),
+        'req_count_values': req_count_value,
     }
+
+
+def calculate_general_params(res, model_config, debug=False):
+    ready_avg = (res['inst_count_possible_values'] * res['ready_probs']).sum()
+    ordered_avg = (res['inst_count_possible_values'] * res['ordered_probs']).sum()
+
+    req_count_probs_weighted = res['req_count_probs'].T @ res['ready_probs']
+    req_count_avg = (res['req_count_values'] * req_count_probs_weighted).sum()
+
+    resp_time_counts = res['req_count_values'][1:]
+    resp_time_counts_probs = req_count_probs_weighted[1:] / (1- req_count_probs_weighted[0])
+    resp_time_values = model_config['base_service_time_ms'] * (1 + (resp_time_counts - 1) * model_config['alpha'])
+    resp_time_avg = (resp_time_values * resp_time_counts_probs).sum()
+
+    return {
+        'ready_avg': ready_avg,
+        'ordered_avg': ordered_avg,
+        'req_count_avg': req_count_avg,
+        'resp_time_avg': resp_time_avg,
+    }
+
