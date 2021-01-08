@@ -180,5 +180,6 @@ def calculate_general_params(res, model_config, debug=False):
         'ordered_avg': ordered_avg,
         'req_count_avg': req_count_avg,
         'resp_time_avg': resp_time_avg,
+        'req_count_probs_weighted': req_count_probs_weighted,
     }
 
