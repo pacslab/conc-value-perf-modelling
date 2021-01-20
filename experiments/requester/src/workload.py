@@ -23,6 +23,10 @@ print("Loaded HTTP path:", http_path)
 conc_count = 0
 conc_lock = threading.Lock()
 
+def get_conc():
+    global conc_count
+    return conc_count
+
 def inc_conc():
     global conc_count
     with conc_lock:
@@ -60,9 +64,9 @@ def worker_func():
     cmds['sleep_till'] = 0
     cmds['stat'] = {"argv": 1}
 
-    # cmds['cpu'] = {"n": 10000}
+    cmds['cpu'] = {"n": 20000}
 
-    cmds['sleep'] = 50 + (random.random() * 100)
+    # cmds['sleep'] = 1000 + (random.random() * 200)
 
     # cmds['io'] = {"rd": 3, "size": "200K", "cnt": 5}
     # cmds['cpu'] = {"n": 10000}
