@@ -41,6 +41,8 @@ KnativeDeployment = namedtuple('KnativeDeployment', ['deployment', 'name', 'revi
 # Here, out goal is to watch the deployments and be notified of any changes in them. For more information,
 # visit the docs:
 # https://github.com/kubernetes-client/python/blob/master/kubernetes/docs/AppsV1Api.md#list_deployment_for_all_namespaces
+# tutorial:
+# https://medium.com/@sebgoa/kubernets-async-watches-b8fa8a7ebfd4
 def watch_deploymets():
     global live_deployments
     live_deployments = {}
