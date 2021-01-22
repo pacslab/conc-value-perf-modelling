@@ -1,102 +1,130 @@
 #! /usr/local/bin/python
 
-import os
-import sys
 import time
 import threading
-import random
+from collections import deque
 
-import requests
+import numpy as np
 
 from pacswg.timer import TimerClass
 
-http_path = os.getenv('HTTP_PATH')
-logger_path = os.getenv('LOGGER_PATH')
-exp_name = os.getenv('EXP_NAME')
 
-if http_path is None:
-    print("HTTP_PATH environment variable is necessary!")
-    sys.exit(1)
+class WorkloadLogger:
+    conc_count = 0
+    conc_lock = threading.Lock()
+    threads_stop_signal = False
+    recorded_data = {}
 
-print("Loaded HTTP path:", http_path)
+    def __init__(self, get_ready_cb, cc_average_count=60, monitor_timeout=1, record_timeout=2):
+        super().__init__()
+        self.most_recent_cc_queue = deque(maxlen=cc_average_count)
+        self.get_ready_cb = get_ready_cb
+        self.monitoring_thread = threading.Thread(target=self.monitor_conc_loop, args=(monitor_timeout,), daemon=True)
+        self.record_thread = threading.Thread(target=self.record_conc_loop, args=(record_timeout,), daemon=True)
 
-conc_count = 0
-conc_lock = threading.Lock()
+    def get_recorded_data(self):
+        return self.recorded_data
 
-def get_conc():
-    global conc_count
-    return conc_count
+    def start_capturing(self):
+        # clear recorded data
+        self.recorded_data.clear()
+        # start capturing
+        print('starting threads')
+        self.threads_stop_signal = False
+        self.monitoring_thread.start()
+        self.record_thread.start()
 
-def inc_conc():
-    global conc_count
-    with conc_lock:
-        conc_count += 1
+    def stop_capturing(self):
+        print('stopping threads...')
+        self.threads_stop_signal = True
+        # wait for threads to stop running
+        self.monitoring_thread.join()
+        self.record_thread.join()
+        print('Done.')
 
-def dec_conc():
-    global conc_count
-    with conc_lock:
-        conc_count -= 1
+    def get_conc(self):
+        return self.conc_count
 
-def reset_conc():
-    global conc_count
-    with conc_lock:
-        conc_count = 0
+    def inc_conc(self):
+        with self.conc_lock:
+            self.conc_count += 1
 
-def report_conc_loop():
-    global conc_count
+    def dec_conc(self):
+        with self.conc_lock:
+            self.conc_count -= 1
 
-    if logger_path is None or exp_name is None:
-        print('Report disabled, LOGGER_PATH or EXP_NAME not set.')
-        return
+    def reset_conc(self):
+        with self.conc_lock:
+            self.conc_count = 0
 
-    timer = TimerClass()
-    while True:
-        timer.tic()
-        res = requests.post(f'{logger_path}/logger/conc_logs/{exp_name}/client', data={'conc_value': conc_count})
-        if res.text != 'OK':
-            print('--- client push concurrency failed:', res.status, res.text)
-        while timer.toc() < 2:
-            time.sleep(0.01)
+    def monitor_conc_loop(self, timeout=1):
+        timer = TimerClass()
+        while not(self.threads_stop_signal):
+            timer.tic()
+            # record concurrency into self.most_recent_cc_queue
+            ready_count = self.get_ready_cb()
+            if ready_count > 0:
+                # cc = tcc / N
+                cc = self.get_conc() / ready_count
+            else:
+                # assume we have one ready, but it doesn't still show
+                # ready remains one until health checks complete
+                # but sometimes container is up before that
+                cc = self.get_conc()
 
-def worker_func():
-    cmds = {}
-    cmds['sleep'] = 0
-    cmds['sleep_till'] = 0
-    cmds['stat'] = {"argv": 1}
+            self.most_recent_cc_queue.append(cc)
+            while timer.toc() < timeout:
+                time.sleep(0.01)
 
-    # cmds['cpu'] = {"n": 20000}
+    def get_cc_window_average(self):
+        if len(self.most_recent_cc_queue) > 0:
+            return np.mean(self.most_recent_cc_queue)
+        return -1
 
-    cmds['sleep'] = 1000 + (random.random() * 200)
+    def record_data(self, data):
+        for k in data:
+            if k not in self.recorded_data:
+                self.recorded_data[k] = []
 
-    # cmds['io'] = {"rd": 3, "size": "200K", "cnt": 5}
-    # cmds['cpu'] = {"n": 10000}
+            self.recorded_data[k].append(data[k])
+            
 
-    payload = {}
-    payload['cmds'] = cmds
+    def record_conc_loop(self, timeout=2):
+        timer = TimerClass()
+        while not(self.threads_stop_signal):
+            timer.tic()
+            # record concurrency value and others
+            self.record_data({
+                'ready_count': self.get_ready_cb(),
+                'total_conc': self.get_conc(),
+                'conc_window_average': self.get_cc_window_average(),
+            })
+            while timer.toc() < timeout:
+                time.sleep(0.01)
 
-    inc_conc()
-    try:
-        start_conc = conc_count
-        client_start_time = time.time()
-        res = requests.post(http_path, json=payload)
-        client_end_time = time.time()
-        end_conc = conc_count
-        # r_parsed = res.json()
-    except:
-        client_start_time = -1
-        client_end_time = -1
-        end_conc = -1
-    finally:
-        dec_conc()
+    def worker_func(self, user_func):
+        self.inc_conc()
+        try:
+            start_conc = self.conc_count
+            client_start_time = time.time()
+            # send the request and check if success
+            success = user_func()
+            client_end_time = time.time()
+            end_conc = self.conc_count
+        except:
+            client_start_time = -1
+            client_end_time = -1
+            end_conc = -1
+            success = False
+        finally:
+            self.dec_conc()
 
-    return {
-        'client_start_time': client_start_time,
-        'client_end_time': client_end_time,
-        'client_elapsed_time': client_end_time - client_start_time,
-        'start_conc': start_conc,
-        'end_conc': end_conc,
-    }
+        return {
+            'client_start_time': client_start_time,
+            'client_end_time': client_end_time,
+            'client_elapsed_time': client_end_time - client_start_time,
+            'start_conc': start_conc,
+            'end_conc': end_conc,
+            'success': success,
+        }
 
-if __name__ == '__main__':
-    print(worker_func())
-    # report_conc_loop()
