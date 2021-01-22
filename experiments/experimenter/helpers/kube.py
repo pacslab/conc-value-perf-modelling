@@ -99,3 +99,28 @@ def get_knative_deployments():
     global live_deployments
     return [extract_knative_deployment(d) for d in live_deployments if is_knative_deployment(d)]
 
+def get_kn_latest_revs():
+    kn_deployments = get_knative_deployments()
+    kn_latest_revs = {}
+    for k in kn_deployments:
+        if k.name not in kn_latest_revs:
+            kn_latest_revs[k.name] = k
+        else:
+            if k.revision_num > kn_latest_revs[k.name].revision_num:
+                kn_latest_revs[k.name] = k
+    return kn_latest_revs
+
+
+# get kn cli command for a deployment
+def get_kn_command(name, image, env=None, opts=None, annotations=None, sep=" \\\n  "):
+    command = f'kn service apply {name} --image {image}'
+    if env is not None:
+        command += sep
+        command += sep.join([f"--env {k}={env[k]}" for k in env])
+    if opts is not None:
+        command += sep
+        command += sep.join([f"{k} {opts[k]}" for k in opts])
+    if annotations is not None:
+        command += sep
+        command += sep.join([f"-a {k}={annotations[k]}" for k in annotations])
+    return command
