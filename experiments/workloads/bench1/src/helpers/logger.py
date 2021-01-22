@@ -65,6 +65,9 @@ async def connect():
 
 
 async def start_server(keep_running=True):
+    if sio_server == 'NO':
+        print('SocketIO Server disabled!')
+        return
     print(f"trying to connect to {sio_server}")
     try:
         await sio.connect(sio_server)
