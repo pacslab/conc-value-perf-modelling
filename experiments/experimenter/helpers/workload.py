@@ -19,13 +19,15 @@ class WorkloadLogger:
         super().__init__()
         self.most_recent_cc_queue = deque(maxlen=cc_average_count)
         self.get_ready_cb = get_ready_cb
-        self.monitoring_thread = threading.Thread(target=self.monitor_conc_loop, args=(monitor_timeout,), daemon=True)
-        self.record_thread = threading.Thread(target=self.record_conc_loop, args=(record_timeout,), daemon=True)
-
+        self.monitor_timeout = monitor_timeout
+        self.record_timeout = record_timeout
+        
     def get_recorded_data(self):
         return self.recorded_data
 
     def start_capturing(self):
+        self.monitoring_thread = threading.Thread(target=self.monitor_conc_loop, args=(self.monitor_timeout,), daemon=True)
+        self.record_thread = threading.Thread(target=self.record_conc_loop, args=(self.record_timeout,), daemon=True)
         # clear recorded data
         self.recorded_data.clear()
         # start capturing
@@ -38,8 +40,10 @@ class WorkloadLogger:
         print('stopping threads...')
         self.threads_stop_signal = True
         # wait for threads to stop running
-        self.monitoring_thread.join()
-        self.record_thread.join()
+        if self.monitoring_thread is not None:
+            self.monitoring_thread.join()
+        if self.record_thread is not None:
+            self.record_thread.join()
         print('Done.')
 
     def get_conc(self):
@@ -98,6 +102,7 @@ class WorkloadLogger:
                 'ready_count': self.get_ready_cb(),
                 'total_conc': self.get_conc(),
                 'conc_window_average': self.get_cc_window_average(),
+                'time': time.time(),
             })
             while timer.toc() < timeout:
                 time.sleep(0.01)
