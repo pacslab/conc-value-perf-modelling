@@ -111,10 +111,12 @@ class WorkloadLogger:
         self.inc_conc()
         try:
             start_conc = self.conc_count
+            start_ready_count = self.get_ready_cb()
             client_start_time = time.time()
             # send the request and check if success
             success = user_func()
             client_end_time = time.time()
+            end_ready_count = self.get_ready_cb()
             end_conc = self.conc_count
         except:
             client_start_time = -1
@@ -131,5 +133,7 @@ class WorkloadLogger:
             'start_conc': start_conc,
             'end_conc': end_conc,
             'success': success,
+            'start_ready_count': start_ready_count,
+            'end_ready_count': end_ready_count,
         }
 
