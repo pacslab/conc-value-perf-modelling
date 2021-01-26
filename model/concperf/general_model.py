@@ -1,6 +1,7 @@
 import itertools
 
 import numpy as np
+import scipy.stats as stats
 from tqdm.auto import tqdm
 
 from .single_model import StateCoder as SingleStateCoder
@@ -101,10 +102,26 @@ def solve_general_model(model_config, update_config, debug=False, show_progress=
         update_config(model_config)
 
         # calculate and show Q
-        single_Q = single_model.get_single_container_q(single_coder, config=model_config)
+        # single_Q = single_model.get_single_container_q(single_coder, config=model_config)
         # display(pd.DataFrame(single_Q))
+        # req_count_prob = utility.solve_CTMC(single_Q)
+        # print(req_count_prob)
+        # TODO: temporary fix
+        coeffs2 = [0.0, 0.822918586124885, 0.38755061683168457]
+        lambda_over_n = model_config['arrival_rate_total'] / np.clip(ready_inst_count, a_min=1, a_max=np.inf)
+        normal_mean = (lambda_over_n ** 2) * coeffs2[2] + lambda_over_n * coeffs2[1] + coeffs2[0]
+        normal_std = normal_mean * 0.07
 
-        req_count_prob = utility.solve_CTMC(single_Q)
+        # since we won't be summing up, we need more granular req count values
+        req_count_value = np.linspace(0, model_config['max_conc'], 100)
+
+        req_count_prob = stats.norm.pdf(req_count_value, loc=normal_mean, scale=normal_std)
+        req_count_prob = req_count_prob / req_count_prob.sum()
+
+        # to compare the results of model vs regression
+        # print(normal_mean, (req_count_prob * req_count_value).sum())
+        # print(req_count_prob)
+
         all_req_count_prob.append(req_count_prob)
 
         # if 0 instances, any value for request count over 0 causes transition to 1 instances
@@ -118,7 +135,12 @@ def solve_general_model(model_config, update_config, debug=False, show_progress=
             avg_count = model_config['stable_conc_avg_count']
             import time
             start_time = time.time()
-            req_count_averaged_vals, req_count_averaged_probs = utility.get_averaged_distribution(vals=req_count_value, probs=req_count_prob, avg_count=avg_count)
+
+            # TODO: temporary test
+            # req_count_averaged_vals, req_count_averaged_probs = utility.get_averaged_distribution(vals=req_count_value, probs=req_count_prob, avg_count=avg_count)
+            req_count_averaged_vals = req_count_value
+            req_count_averaged_probs = req_count_prob
+
             if debug:
                 print(f"new order calculation took {time.time() - start_time} seconds for {ready_inst_count} instances")
 
@@ -133,19 +155,44 @@ def solve_general_model(model_config, update_config, debug=False, show_progress=
             # calculate probability of number of ready instances
             next_ready_vals, next_ready_probs = get_trans_probabilities(ready_count=ready_inst_count, ordered_count=ordered_inst_count, config=model_config)
 
-            # calculate probability for all combinations of "to" states
-            for new_order_idx, next_ready_idx in itertools.product(range(len(new_order_vals)), range(len(next_ready_vals))):
-                new_order_val = new_order_vals[new_order_idx]
-                new_order_prob = new_order_probs[new_order_idx]
-                next_ready_val = next_ready_vals[next_ready_idx]
-                next_ready_prob = next_ready_probs[next_ready_idx]
+            # convert to numpy
+            new_order_vals = np.array(new_order_vals)
+            new_order_probs = np.array(new_order_probs)
+            next_ready_vals = np.array(next_ready_vals)
+            next_ready_probs = np.array(next_ready_probs)
 
-                to_state_idx = general_state_coder.to_idx(state=(new_order_val, next_ready_val))
-                general_P[from_state_idx, to_state_idx] = new_order_prob * next_ready_prob
+            # filter unlikely states
+            PROB_THRESHOLD = 1e-3
+            new_order_filtered_idxs = np.where(new_order_probs > PROB_THRESHOLD)
+            next_ready_filtered_idxs = np.where(next_ready_probs > PROB_THRESHOLD)
+
+            new_order_vals = new_order_vals[new_order_filtered_idxs]
+            new_order_probs = new_order_probs[new_order_filtered_idxs]
+            next_ready_vals = next_ready_vals[next_ready_filtered_idxs]
+            next_ready_probs = next_ready_probs[next_ready_filtered_idxs]
+
+            # faster probability calculations
+            if len(new_order_vals) > 0:
+                for next_ready_idx in range(len(next_ready_vals)):
+                    next_ready_val = next_ready_vals[next_ready_idx]
+                    next_ready_prob = next_ready_probs[next_ready_idx]
+                    
+                    to_state_idxs = np.array([general_state_coder.to_idx(state=(new_order_val, next_ready_val)) for new_order_val in new_order_vals])
+                    general_P[from_state_idx, to_state_idxs] = new_order_probs * next_ready_prob
+
+            # calculate probability for all combinations of "to" states
+            # for new_order_idx, next_ready_idx in itertools.product(range(len(new_order_vals)), range(len(next_ready_vals))):
+            #     new_order_val = new_order_vals[new_order_idx]
+            #     new_order_prob = new_order_probs[new_order_idx]
+            #     next_ready_val = next_ready_vals[next_ready_idx]
+            #     next_ready_prob = next_ready_probs[next_ready_idx]
+
+            #     to_state_idx = general_state_coder.to_idx(state=(new_order_val, next_ready_val))
+            #     general_P[from_state_idx, to_state_idx] = new_order_prob * next_ready_prob
 
     if debug:
         # when everything is fixed, this should all be ones (almost, because of rounding errors)
-        print('valuees in P that are far from 1 (threshold of 1e-6): ', np.where((general_P.sum(axis=1)-1) > 1e-6))
+        print('values in P that are far from 1 (threshold of 1e-6): ', np.where((general_P.sum(axis=1)-1) > 1e-6))
         # we don't want to be stuck in a specific state
         print('index of values in P that are equal to 1 (stuck forever): ', np.where(general_P == 1))
 
@@ -170,10 +217,15 @@ def calculate_general_params(res, model_config, debug=False):
     req_count_probs_weighted = res['req_count_probs'].T @ res['ready_probs']
     req_count_avg = (res['req_count_values'] * req_count_probs_weighted).sum()
 
-    resp_time_counts = res['req_count_values'][1:]
-    resp_time_counts_probs = req_count_probs_weighted[1:] / (1- req_count_probs_weighted[0])
-    resp_time_values = model_config['base_service_time_ms'] * (1 + (resp_time_counts - 1) * model_config['alpha'])
-    resp_time_avg = (resp_time_values * resp_time_counts_probs).sum()
+    # resp_time_counts = res['req_count_values'][1:]
+    # resp_time_counts_probs = req_count_probs_weighted[1:] / (1- req_count_probs_weighted[0])
+    # resp_time_values = model_config['base_service_time_ms'] * (1 + (resp_time_counts - 1) * model_config['alpha'])
+    # resp_time_avg = (resp_time_values * resp_time_counts_probs).sum()
+    lambda_over_n = model_config['arrival_rate_total'] / np.clip(res['inst_count_possible_values'], a_min=1, a_max=np.inf)
+    coeffs2 = [1.1209698797227887, 0.0951327024353521, 0.06436842241002438]
+    resp_time_values = (lambda_over_n ** 2) * coeffs2[2] + lambda_over_n * coeffs2[1] + coeffs2[0]
+    resp_time_avg = (resp_time_values * res['ready_probs']).sum()
+    
 
     return {
         'ready_avg': ready_avg,
