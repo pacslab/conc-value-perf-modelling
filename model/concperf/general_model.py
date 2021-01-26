@@ -107,7 +107,8 @@ def solve_general_model(model_config, update_config, debug=False, show_progress=
         # req_count_prob = utility.solve_CTMC(single_Q)
         # print(req_count_prob)
         # TODO: temporary fix
-        coeffs2 = [0.0, 0.822918586124885, 0.38755061683168457]
+        # coeffs2 = [0.0, 0.822918586124885, 0.38755061683168457]
+        coeffs2 = model_config['conc_average_model']
         lambda_over_n = model_config['arrival_rate_total'] / np.clip(ready_inst_count, a_min=1, a_max=np.inf)
         normal_mean = (lambda_over_n ** 2) * coeffs2[2] + lambda_over_n * coeffs2[1] + coeffs2[0]
         normal_std = normal_mean * 0.07
@@ -222,7 +223,8 @@ def calculate_general_params(res, model_config, debug=False):
     # resp_time_values = model_config['base_service_time_ms'] * (1 + (resp_time_counts - 1) * model_config['alpha'])
     # resp_time_avg = (resp_time_values * resp_time_counts_probs).sum()
     lambda_over_n = model_config['arrival_rate_total'] / np.clip(res['inst_count_possible_values'], a_min=1, a_max=np.inf)
-    coeffs2 = [1.1209698797227887, 0.0951327024353521, 0.06436842241002438]
+    # coeffs2 = [1.1209698797227887, 0.0951327024353521, 0.06436842241002438]
+    coeffs2 = model_config['resp_time_model']
     resp_time_values = (lambda_over_n ** 2) * coeffs2[2] + lambda_over_n * coeffs2[1] + coeffs2[0]
     resp_time_avg = (resp_time_values * res['ready_probs']).sum()
     
