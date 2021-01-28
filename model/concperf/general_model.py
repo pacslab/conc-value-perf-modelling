@@ -101,13 +101,10 @@ def solve_general_model(model_config, update_config, debug=False, show_progress=
         # update the config
         update_config(model_config)
 
-        # calculate and show Q
+        # calculate and show Q (no longer used)
         # single_Q = single_model.get_single_container_q(single_coder, config=model_config)
         # display(pd.DataFrame(single_Q))
         # req_count_prob = utility.solve_CTMC(single_Q)
-        # print(req_count_prob)
-        # TODO: temporary fix
-        # coeffs2 = [0.0, 0.822918586124885, 0.38755061683168457]
         coeffs2 = model_config['conc_average_model']
         lambda_over_n = model_config['arrival_rate_total'] / np.clip(ready_inst_count, a_min=1, a_max=np.inf)
         normal_mean = (lambda_over_n ** 2) * coeffs2[2] + lambda_over_n * coeffs2[1] + coeffs2[0]
@@ -118,10 +115,6 @@ def solve_general_model(model_config, update_config, debug=False, show_progress=
 
         req_count_prob = stats.norm.pdf(req_count_value, loc=normal_mean, scale=normal_std)
         req_count_prob = req_count_prob / req_count_prob.sum()
-
-        # to compare the results of model vs regression
-        # print(normal_mean, (req_count_prob * req_count_value).sum())
-        # print(req_count_prob)
 
         all_req_count_prob.append(req_count_prob)
 
@@ -137,8 +130,6 @@ def solve_general_model(model_config, update_config, debug=False, show_progress=
             import time
             start_time = time.time()
 
-            # TODO: temporary test
-            # req_count_averaged_vals, req_count_averaged_probs = utility.get_averaged_distribution(vals=req_count_value, probs=req_count_prob, avg_count=avg_count)
             req_count_averaged_vals = req_count_value
             req_count_averaged_probs = req_count_prob
 
@@ -181,16 +172,6 @@ def solve_general_model(model_config, update_config, debug=False, show_progress=
                     to_state_idxs = np.array([general_state_coder.to_idx(state=(new_order_val, next_ready_val)) for new_order_val in new_order_vals])
                     general_P[from_state_idx, to_state_idxs] = new_order_probs * next_ready_prob
 
-            # calculate probability for all combinations of "to" states
-            # for new_order_idx, next_ready_idx in itertools.product(range(len(new_order_vals)), range(len(next_ready_vals))):
-            #     new_order_val = new_order_vals[new_order_idx]
-            #     new_order_prob = new_order_probs[new_order_idx]
-            #     next_ready_val = next_ready_vals[next_ready_idx]
-            #     next_ready_prob = next_ready_probs[next_ready_idx]
-
-            #     to_state_idx = general_state_coder.to_idx(state=(new_order_val, next_ready_val))
-            #     general_P[from_state_idx, to_state_idx] = new_order_prob * next_ready_prob
-
     if debug:
         # when everything is fixed, this should all be ones (almost, because of rounding errors)
         print('values in P that are far from 1 (threshold of 1e-6): ', np.where((general_P.sum(axis=1)-1) > 1e-6))
@@ -218,16 +199,10 @@ def calculate_general_params(res, model_config, debug=False):
     req_count_probs_weighted = res['req_count_probs'].T @ res['ready_probs']
     req_count_avg = (res['req_count_values'] * req_count_probs_weighted).sum()
 
-    # resp_time_counts = res['req_count_values'][1:]
-    # resp_time_counts_probs = req_count_probs_weighted[1:] / (1- req_count_probs_weighted[0])
-    # resp_time_values = model_config['base_service_time_ms'] * (1 + (resp_time_counts - 1) * model_config['alpha'])
-    # resp_time_avg = (resp_time_values * resp_time_counts_probs).sum()
     lambda_over_n = model_config['arrival_rate_total'] / np.clip(res['inst_count_possible_values'], a_min=1, a_max=np.inf)
-    # coeffs2 = [1.1209698797227887, 0.0951327024353521, 0.06436842241002438]
     coeffs2 = model_config['resp_time_model']
     resp_time_values = (lambda_over_n ** 2) * coeffs2[2] + lambda_over_n * coeffs2[1] + coeffs2[0]
     resp_time_avg = (resp_time_values * res['ready_probs']).sum()
-    
 
     return {
         'ready_avg': ready_avg,
