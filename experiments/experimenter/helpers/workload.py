@@ -122,6 +122,7 @@ class WorkloadLogger:
             client_start_time = -1
             client_end_time = -1
             end_conc = -1
+            end_ready_count = -1
             success = False
         finally:
             self.dec_conc()
