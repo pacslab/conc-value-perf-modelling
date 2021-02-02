@@ -15,7 +15,7 @@ jobs:
     - name: Build the Docker image
       if: ${{ github.ref != 'refs/heads/main' }}
       run: |
-        docker build -f ./experiments/workloads/bench1/Dockerfile -t conc-value-bench1 ./
+        docker build -f ./experiments/workloads/bench1/Dockerfile -t conc-value-bench1 ./experiments/workloads/bench1/
     - name: Docker meta
       id: docker_meta
       uses: crazy-max/ghaction-docker-meta@v1
