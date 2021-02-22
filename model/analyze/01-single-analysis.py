@@ -93,7 +93,7 @@ if __name__ == "__main__":
         
     plt.ylim((0, 80))
     plt.ylabel('Concurrency')
-    plt.xlabel('Arrival Rate')
+    plt.xlabel('Arrival Rate Per Container')
+    plt.grid(True)
     plt.legend()
-
     save_fig('01_conc_vs_arrival_alpha')
