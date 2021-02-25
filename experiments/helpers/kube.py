@@ -112,7 +112,7 @@ def get_kn_latest_revs():
 
 
 # get kn cli command for a deployment
-def get_kn_command(name, image, env=None, opts=None, annotations=None, sep=" \\\n  "):
+def get_kn_command(name, image, env=None, opts=None, annotations=None, sep=" \\\n  ", **kwargs):
     command = f'kn service apply {name} --image {image}'
     if env is not None:
         command += sep

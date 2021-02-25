@@ -1,0 +1,39 @@
+{
+    "name": "bench1",
+    "image": "ghcr.io/nimamahmoudi/conc-workloads-bench1:sha-5966a0e",
+    "env": {
+        "EXPERIMENT_NAME": "TEST1",
+        "REPORT_INTERVAL": "10",
+        "SOCKETIO_SERVER": "NO"
+    },
+    "opts": {
+        "--limit": "'cpu=250m,memory=256Mi'",
+        "--concurrency-target": "1"
+    },
+    "annotations": {
+        "autoscaling.knative.dev/panicThresholdPercentage": "1000"
+    },
+    "request_func": "bench1_sleep_rand2_1000_200",
+    "exp_spec": {
+        "time_mins": 20,
+        "name": "bench1_sleep_rand2_1000_200",
+        "cc_list": [
+            1,
+            2,
+            3,
+            5,
+            7,
+            10
+        ],
+        "rps_list": [
+            1,
+            2,
+            3,
+            5,
+            7,
+            10,
+            15,
+            20
+        ]
+    }
+}

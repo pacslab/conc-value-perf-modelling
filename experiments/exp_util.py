@@ -11,9 +11,6 @@ from IPython import get_ipython
 # %%
 # general imports
 import time
-import re
-from collections import namedtuple, deque
-import random
 import copy
 from datetime import datetime
 import pytz
@@ -22,7 +19,6 @@ import os
 my_timezone = os.getenv('PY_TZ', 'America/Toronto')
 
 # library imports
-import requests
 from tqdm.auto import tqdm
 import pandas as pd
 import numpy as np
@@ -33,7 +29,6 @@ import pacswg
 
 # my imports
 from helpers import kube
-from helpers import workload
 
 # %% [markdown]
 # ## Kubernetes API
@@ -56,129 +51,13 @@ def get_knative_watch_info(kn_deploy_name):
     bench_deployment = kn_latest_revs[kn_deploy_name]
     return kube.live_deployments[bench_deployment.deployment]
 
-get_knative_watch_info('bench1')
-
-# %% [markdown]
-# ## Deploying On Knative
-# 
-# In this section, we will develop the functionality to deploy a given workload to **knative** using the `kn` CLI.
-# The other options were using [CRDs](https://stackoverflow.com/questions/61384188/how-to-deploy-a-knative-service-with-kubernetes-python-client-library),
-# or using [kubectl apply](https://developers.redhat.com/coderland/serverless/deploying-serverless-knative#invoking_your_service_from_the_command_line)
-# but `kn` seems to be more powerful.
+# get_knative_watch_info('bench1')
 
 # %%
-# making sure kn is set up correctly
-get_ipython().system('kn service ls')
-
-
-# %%
-# workload_name = 'bench1'
-workload_name = 'autoscale-go'
-# image = 'ghcr.io/nimamahmoudi/conc-workloads-bench1:sha-5966a0e'
-image = 'gcr.io/knative-samples/autoscale-go:0.1'
-env = {
-    'EXPERIMENT_NAME': 'TEST1',
-    'REPORT_INTERVAL': '10',
-    'SOCKETIO_SERVER': 'NO',
-}
-opts = {
-    '--limit': "'cpu=250m,memory=256Mi'",
-    '--concurrency-target': '1',
-    # '--concurrency-limit': '10',
-    # '--concurrency-utilization': '70',
-    # '--autoscale-window': '60s',
-}
-annotations = {
-    'autoscaling.knative.dev/panicThresholdPercentage': '1000',
-}
-
-workload_spec = {
-    'name': workload_name,
-    'image': image,
-    'env': env,
-    'opts': opts,
-    'annotations': annotations,
-}
 
 def kn_change_opts_concurrency_target(new_target, workload_spec):
     workload_spec['opts']['--concurrency-target'] = new_target
-    return opts
-
-# to change options to have a new concurrency target
-# kn_change_opts_concurrency_target(1, workload_spec)
-
-kn_command = kube.get_kn_command(**workload_spec)
-print(kn_command)
-# to run the command, we can simply use:
-# !{kn_command}
-
-# %% [markdown]
-# # Workload Specification
-
-# %%
-# user defined workload function
-# def user_workload_func():
-#     http_path = "http://bench1.default.kn.nima-dev.com"
-
-#     cmds = {}
-#     cmds['sleep'] = 0
-#     cmds['sleep_till'] = 0
-#     cmds['stat'] = {"argv": 1}
-
-#     cmds['cpu'] = {"n": 5000}
-
-#     # cmds['sleep'] = 1000 + (random.random() * 200)
-#     # cmds['sleep'] = 400 + (random.random() * 200)
-
-#     # cmds['io'] = {"rd": 3, "size": "200K", "cnt": 5}
-#     # cmds['cpu'] = {"n": 10000}
-
-#     payload = {}
-#     payload['cmds'] = cmds
-
-#     res = requests.post(http_path, json=payload)
-#     if res.status_code >= 300:
-#         return False
-#     return True
-
-def user_workload_func():
-    http_path = "http://autoscale-go.default.kn.nima-dev.com"
-
-    params = {
-        "sleep": "500",
-        "prime": "10000",
-        "bloat": "5",
-    }
-
-    http_path += "?"
-    for k,v in params.items():
-        http_path += f"{k}={v}&"
-
-    res = requests.get(http_path)
-    if res.status_code >= 300:
-        return False
-    return True
-
-# get ready count callback
-get_ready_cb = lambda: get_knative_watch_info(workload_name)['ready_replicas']
-print('ready callback:', get_ready_cb())
-# create logger and check one execution of workload func
-wlogger = workload.WorkloadLogger(get_ready_cb=get_ready_cb)
-simple_worker_func = lambda: wlogger.worker_func(user_workload_func)
-# add worker func to workload spec
-workload_spec['simple_worker_func'] = simple_worker_func
-
-simple_worker_func()
-
-
-# %%
-# wlogger.monitoring_thread.start()
-# wlogger.record_conc_loop()
-# wlogger.monitor_conc_loop()
-wlogger.start_capturing()
-time.sleep(7)
-wlogger.stop_capturing()
-wlogger.get_recorded_data()
+    return workload_spec
 
 # %% [markdown]
 # # Specifying Single Experiment
@@ -187,7 +66,7 @@ wlogger.get_recorded_data()
 # run several experiments to collect the necessary data.
 
 # %%
-def perform_experiment(rps, cc, base_workload_spec, exp_spec):
+def perform_experiment(rps, cc, base_workload_spec, exp_spec, wlogger):
     rps_list = [rps] * exp_spec['time_mins']
     # get base workload
     workload_spec = copy.deepcopy(base_workload_spec)
@@ -251,27 +130,5 @@ def perform_experiment(rps, cc, base_workload_spec, exp_spec):
 
     print('Experiment Name:', exp_spec['name'])
     print('Results Name:', res_name)
-
-
-# experiment specification
-exp_spec = {
-    'time_mins': 20,
-    'name': 'autoscale_go_500_10k_5',
-}
-
-# cc_list = range(1,10,2)
-# rps_list = np.linspace(1,21,11)
-cc_list = [1,2,5,10]
-rps_list = [1,2,5,10,15,20]
-
-# perform_experiment(rps=1, cc=1, base_workload_spec=workload_spec, exp_spec=exp_spec)
-
-# %% [markdown]
-# # Performing A Series of Experiments
-
-# %%
-# for cc in cc_list:
-#     for rps in rps_list:
-#         perform_experiment(rps=rps, cc=cc, base_workload_spec=workload_spec, exp_spec=exp_spec)
 
 

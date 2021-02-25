@@ -1,0 +1,35 @@
+{
+    "name": "autoscale-go",
+    "image": "gcr.io/knative-samples/autoscale-go:0.1",
+    "env": {},
+    "opts": {
+        "--limit": "'cpu=250m,memory=256Mi'",
+        "--concurrency-target": "1"
+    },
+    "annotations": {
+        "autoscaling.knative.dev/panicThresholdPercentage": "1000"
+    },
+    "request_func": "autoscale_go_500_10k_5",
+    "exp_spec": {
+        "time_mins": 20,
+        "name": "autoscale_go_500_10k_5",
+        "cc_list": [
+            1,
+            2,
+            3,
+            5,
+            7,
+            10
+        ],
+        "rps_list": [
+            1,
+            2,
+            3,
+            5,
+            7,
+            10,
+            15,
+            20
+        ]
+    }
+}
