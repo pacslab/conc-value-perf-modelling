@@ -59,6 +59,9 @@ def kn_change_opts_concurrency_target(new_target, workload_spec):
     workload_spec['opts']['--concurrency-target'] = new_target
     return workload_spec
 
+def get_time_with_tz():
+    return datetime.now().astimezone(pytz.timezone(my_timezone))
+
 # %% [markdown]
 # # Specifying Single Experiment
 # 
@@ -66,7 +69,8 @@ def kn_change_opts_concurrency_target(new_target, workload_spec):
 # run several experiments to collect the necessary data.
 
 # %%
-def perform_experiment(rps, cc, base_workload_spec, exp_spec, wlogger):
+def perform_experiment(rps, cc, base_workload_spec, wlogger):
+    exp_spec = base_workload_spec['exp_spec']
     rps_list = [rps] * exp_spec['time_mins']
     # get base workload
     workload_spec = copy.deepcopy(base_workload_spec)
@@ -94,7 +98,7 @@ def perform_experiment(rps, cc, base_workload_spec, exp_spec, wlogger):
     wlogger.start_capturing()
 
     print("============ Experiment Started ============")
-    print("Time Started:", datetime.now().astimezone(pytz.timezone(my_timezone)))
+    print("Time Started:", get_time_with_tz())
 
     for rps in tqdm(rps_list):
         wg.set_rps(rps)
@@ -117,7 +121,7 @@ def perform_experiment(rps, cc, base_workload_spec, exp_spec, wlogger):
     df_logger = pd.DataFrame(data=logger_data)
     df_logger['rps'] = rps
     df_logger['cc'] = cc
-    now = datetime.now().astimezone(pytz.timezone(my_timezone))
+    now = get_time_with_tz()
     res_name = now.strftime('res-%Y-%m-%d_%H-%M-%S')
     res_folder = f'results/{exp_spec["name"]}/'
     # make the directory and file names
@@ -130,5 +134,7 @@ def perform_experiment(rps, cc, base_workload_spec, exp_spec, wlogger):
 
     print('Experiment Name:', exp_spec['name'])
     print('Results Name:', res_name)
+
+    return res_name
 
 
