@@ -21,7 +21,6 @@ my_timezone = os.getenv('PY_TZ', 'America/Toronto')
 # library imports
 from tqdm.auto import tqdm
 import pandas as pd
-import numpy as np
 
 # my library imports
 from pacswg.timer import TimerClass
