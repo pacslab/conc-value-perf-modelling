@@ -3,17 +3,19 @@
     "image": "gcr.io/knative-samples/autoscale-go:0.1",
     "env": {},
     "opts": {
-        "--limit": "'cpu=250m,memory=256Mi'",
-        "--concurrency-target": "1"
+        "--limit": "'cpu=250m,memory=256Mi'"
     },
     "annotations": {
-        "autoscaling.knative.dev/panicThresholdPercentage": "1000"
+        "autoscaling.knative.dev/panicThresholdPercentage": "1000",
+        "autoscaling.knative.dev/target": 1,
+        "autoscaling.knative.dev/metric": "concurrency"
     },
     "request_func": "autoscale_go_500_10k_5",
+    "is_rps": false,
     "exp_spec": {
         "time_mins": 20,
         "name": "autoscale_go_500_10k_5",
-        "cc_list": [
+        "target_list": [
             1,
             2,
             3,

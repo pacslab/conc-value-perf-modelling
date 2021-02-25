@@ -7,17 +7,19 @@
         "SOCKETIO_SERVER": "NO"
     },
     "opts": {
-        "--limit": "'cpu=250m,memory=256Mi'",
-        "--concurrency-target": "1"
+        "--limit": "'cpu=250m,memory=256Mi'"
     },
     "annotations": {
-        "autoscaling.knative.dev/panicThresholdPercentage": "1000"
+        "autoscaling.knative.dev/panicThresholdPercentage": "1000",
+        "autoscaling.knative.dev/target": 1,
+        "autoscaling.knative.dev/metric": "concurrency"
     },
     "request_func": "bench1_sleep_rand2_1000_200",
+    "is_rps": false,
     "exp_spec": {
         "time_mins": 20,
         "name": "bench1_sleep_rand2_1000_200",
-        "cc_list": [
+        "target_list": [
             1,
             2,
             3,

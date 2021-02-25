@@ -55,8 +55,9 @@ def get_knative_watch_info(kn_deploy_name):
 
 # %%
 
-def kn_change_opts_concurrency_target(new_target, workload_spec):
-    workload_spec['opts']['--concurrency-target'] = new_target
+def kn_change_opts_target(new_target, workload_spec):
+    # workload_spec['opts']['--concurrency-target'] = new_target
+    workload_spec['annotations']['autoscaling.knative.dev/target'] = new_target
     return workload_spec
 
 def get_time_with_tz():
@@ -69,16 +70,16 @@ def get_time_with_tz():
 # run several experiments to collect the necessary data.
 
 # %%
-def perform_experiment(rps, cc, base_workload_spec, wlogger):
+def perform_experiment(rps, target, base_workload_spec, wlogger):
     exp_spec = base_workload_spec['exp_spec']
     rps_list = [rps] * exp_spec['time_mins']
     # get base workload
     workload_spec = copy.deepcopy(base_workload_spec)
     worker_func = workload_spec['simple_worker_func']
     del workload_spec['simple_worker_func']
-    # change base workload cc
-    kn_change_opts_concurrency_target(cc, workload_spec)
-    # get kn command to change cc
+    # change base workload target
+    kn_change_opts_target(target, workload_spec)
+    # get kn command to change target
     kn_command = kube.get_kn_command(**workload_spec)
     print('applying kn command:')
     print(kn_command)
@@ -100,7 +101,8 @@ def perform_experiment(rps, cc, base_workload_spec, wlogger):
     print("============ Experiment Started ============")
     print("Time Started:", get_time_with_tz())
 
-    for rps in tqdm(rps_list):
+    # for rps in tqdm(rps_list):
+    for rps in rps_list:
         wg.set_rps(rps)
         timer.tic()
         # apply each for one minute
@@ -117,10 +119,10 @@ def perform_experiment(rps, cc, base_workload_spec, wlogger):
     # collect the results
     df_res = pd.DataFrame(data=all_res)
     df_res['rps'] = rps
-    df_res['cc'] = cc
+    df_res['target'] = target
     df_logger = pd.DataFrame(data=logger_data)
     df_logger['rps'] = rps
-    df_logger['cc'] = cc
+    df_logger['target'] = target
     now = get_time_with_tz()
     res_name = now.strftime('res-%Y-%m-%d_%H-%M-%S')
     res_folder = f'results/{exp_spec["name"]}/'
