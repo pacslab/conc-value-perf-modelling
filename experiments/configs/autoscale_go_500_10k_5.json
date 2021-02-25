@@ -13,7 +13,7 @@
     "request_func": "autoscale_go_500_10k_5",
     "is_rps": false,
     "exp_spec": {
-        "time_mins": 20,
+        "time_mins": 60,
         "name": "autoscale_go_500_10k_5",
         "target_list": [
             1,
