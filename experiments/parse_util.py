@@ -36,8 +36,8 @@ get_ipython().system('mkdir -p {figs_folder}')
 
 
 # get paths for a figure
-def get_fig_path(x): return (os.path.join(figs_folder, "exp" +
-              x + ".png"), os.path.join(figs_folder, "exp" + x + ".pdf"))
+def get_fig_path(x, exp_name):
+    return (os.path.join(figs_folder , exp_name, "exp" + x + ".png"), os.path.join(figs_folder, exp_name, "exp" + x + ".pdf"))
 
 # fix log plot on x axis
 def fix_log_x_plot():
@@ -48,8 +48,9 @@ def fix_log_y_plot():
     plt.gca().yaxis.set_major_formatter(ScalarFormatter())
 
 # save figure
-def tmp_fig_save(fig_name):
-    paths = get_fig_path(fig_name)
+def tmp_fig_save(fig_name, exp_name):
+    get_ipython().system(f'mkdir -p {figs_folder}{exp_name}/{figs_folder}')
+    paths = get_fig_path(fig_name, exp_name)
     plt.savefig(paths[0], dpi=600)
     plt.savefig(paths[1])
 
