@@ -61,7 +61,7 @@ def parse_epoch_cols(df, epoch_cols_list):
         times = pd.to_datetime(times.dt.to_pydatetime())
         df[epoch_col + '_dt'] = times
 
-# parse single file functions
+# parse single logger file functions
 def parse_logger_file(csv_file_path, parse_skip_mins=0):
     df = pd.read_csv(csv_file_path, index_col=0, parse_dates=True)
     parse_epoch_cols(df, ['time', ])
@@ -72,6 +72,17 @@ def parse_logger_file(csv_file_path, parse_skip_mins=0):
     df['current_cc'] = df['total_conc'] / df['ready_count']
     # set index to the time
     df = df.set_index('time_dt')
+    return df
+
+# parse single reqs file
+def parse_reqs_file(csv_file_path, parse_skip_mins=0):
+    df = pd.read_csv(csv_file_path, index_col=0, parse_dates=True)
+    parse_epoch_cols(df, ['client_start_time', 'client_end_time' ])
+    # skip 5 minutes
+    df = df[df['client_start_time_dt'] > df['client_start_time_dt'].min() + timedelta(minutes=parse_skip_mins)]
+    df['lambda_over_n'] = df['rps'] / df['start_ready_count']
+    # # set index to the time
+    df = df.set_index('client_start_time_dt')
     return df
 
 # parse in batches with custom functions and return mean, var, and se
@@ -101,5 +112,6 @@ def parse_batch_custom_funcs(df, batch_seconds, parse_cols_funcs, start_date=Non
         results[f"{parse_col_name}_mean"] = val_means_mean
         results[f"{parse_col_name}_var"] = val_means_var
         results[f"{parse_col_name}_se"] = np.sqrt(val_means_var / len(val_means))
+        results[f"{parse_col_name}_ci"] = np.sqrt(val_means_var / len(val_means)) * 1.96
 
     return results
