@@ -83,8 +83,7 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 if __name__ == "__main__":
     arrival_rates = [1,2,3,5,7,10,15,20]
     target_concs = [1,2,3,5,7,10]
-    # arrival_rates = [1,2,10]
-    # target_concs = [1,2]
+    plot_targets = [1,2,5,10]
     df_data = list(itertools.product(arrival_rates, target_concs))
 
     start_time = time.time()
@@ -158,8 +157,10 @@ if __name__ == "__main__":
 
     default_plt_configs(figsize=(4,2.5))
     for target_conc in target_concs:
-        sub_df = resdf.loc[resdf['cc'] == target_conc, :]
-        plt.plot(sub_df['arrival_rate_total'], sub_df['ready_avg'], label=f'Target={target_conc}')
+        if target_conc in plot_targets:
+            sub_df = resdf.loc[np.abs(resdf['cc'] - target_conc) < 0.01, :]
+            sub_df = sub_df.sort_values('arrival_rate_total')
+            plt.plot(sub_df['arrival_rate_total'], sub_df['ready_avg'], label=f'Target={target_conc}')
     plt.legend()
     plt.gca().set_xscale('log')
     plt.xticks(rps_ticks, rps_ticks)
@@ -172,8 +173,10 @@ if __name__ == "__main__":
 
     default_plt_configs(figsize=(4,2.5))
     for target_conc in target_concs:
-        sub_df = resdf.loc[resdf['cc'] == target_conc, :]
-        plt.plot(sub_df['arrival_rate_total'], sub_df['req_count_avg'], label=f'Target={target_conc}')
+        if target_conc in plot_targets:
+            sub_df = resdf.loc[np.abs(resdf['cc'] - target_conc) < 0.01, :]
+            sub_df = sub_df.sort_values('arrival_rate_total')
+            plt.plot(sub_df['arrival_rate_total'], sub_df['req_count_avg'], label=f'Target={target_conc}')
     plt.legend()
     plt.gca().set_xscale('log')
     plt.xticks(rps_ticks, rps_ticks)
@@ -186,12 +189,52 @@ if __name__ == "__main__":
 
     default_plt_configs(figsize=(4,2.5))
     for target_conc in target_concs:
-        sub_df = resdf.loc[resdf['cc'] == target_conc, :]
-        plt.plot(sub_df['arrival_rate_total'], sub_df['resp_time_avg'], label=f'Target={target_conc}')
+        if target_conc in plot_targets:
+            sub_df = resdf.loc[np.abs(resdf['cc'] - target_conc) < 0.01, :]
+            sub_df = sub_df.sort_values('arrival_rate_total')
+            plt.plot(sub_df['arrival_rate_total'], sub_df['resp_time_avg'], label=f'Target={target_conc}')
     plt.legend()
     plt.gca().set_xscale('log')
     plt.xticks(rps_ticks, rps_ticks)
     plt.ylabel("Average Response Time (s)")
     plt.gcf().subplots_adjust(left=0.13, bottom=0.20)
     tmp_fig_save('03_average_resp_time_vs_arrival_rate', exp_config_name)
+# %% make twinx plot
+# let's see if we can make plots for effect of CC
+from matplotlib import ticker
+
+for plot_arrival_rate in [1,2,5,10,20]:
+    sub_overview_df = resdf[resdf['arrival_rate_total'] == plot_arrival_rate]
+    sub_overview_df = sub_overview_df.sort_values('cc')
+    # to have the same values we had in experiments
+    # sub_overview_df = sub_overview_df[sub_overview_df['cc'].isin([1,2,5,10])]
+
+    plt.figure(figsize=(4,2.5))
+    color = 'k'
+    ax1 = plt.gca()
+    ax1.plot(sub_overview_df['cc'], sub_overview_df['ready_avg'], color=color)
+    ax1.set_xlabel('Target Value')
+    ax1.set_ylabel('Instance Count', color=color)
+    ax1.tick_params(axis='y', labelcolor=color)
+    plt.grid(True, axis='x')
+
+    color = 'tab:red'
+    ax2 = plt.gca().twinx()
+    ax2.plot(sub_overview_df['cc'], sub_overview_df['resp_time_avg'], ls='--', color=color)
+    ax2.set_ylabel('Response Time (s)', color=color)
+    ax2.tick_params(axis='y', labelcolor=color)
+    ax2.grid(None)
+
+    # aligning ticks for grids
+    l = ax1.get_ylim()
+    l2 = ax2.get_ylim()
+    f = lambda x : l2[0]+(x-l[0])/(l[1]-l[0])*(l2[1]-l2[0])
+    ticks = f(ax1.get_yticks())
+    ax2.yaxis.set_major_locator(ticker.FixedLocator(ticks))
+
+    # final config
+    plt.gcf().subplots_adjust(left=0.13, bottom=0.20)
+    plt.tight_layout()
+
+    tmp_fig_save(f'04_inst_count_resp_time_target_arrival_{plot_arrival_rate}', exp_config_name)
 # %%
