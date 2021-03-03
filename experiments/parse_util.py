@@ -112,6 +112,7 @@ def parse_batch_custom_funcs(df, batch_seconds, parse_cols_funcs, start_date=Non
         results[f"{parse_col_name}_mean"] = val_means_mean
         results[f"{parse_col_name}_var"] = val_means_var
         results[f"{parse_col_name}_se"] = np.sqrt(val_means_var / len(val_means))
-        results[f"{parse_col_name}_ci"] = np.sqrt(val_means_var / len(val_means)) * 1.96
+        # results[f"{parse_col_name}_ci"] = np.sqrt(val_means_var / len(val_means)) * 1.96
+        results[f"{parse_col_name}_ci"] = np.sqrt(val_means_var) * 1.96
 
     return results
