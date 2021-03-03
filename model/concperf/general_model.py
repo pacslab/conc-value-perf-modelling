@@ -126,7 +126,7 @@ def solve_general_model(model_config, update_config, debug=False, show_progress=
             new_order_probs = [new_order_probs_zero, new_order_probs_one]
         else:
             # calculate measure concurrency distribution
-            avg_count = model_config['stable_conc_avg_count']
+            # avg_count = model_config['stable_conc_avg_count']
             import time
             start_time = time.time()
 
