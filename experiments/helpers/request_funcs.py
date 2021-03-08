@@ -46,5 +46,6 @@ def autoscale_go_workload_func(sleep="500", prime="10000", bloat="5"):
 
 workload_funcs = {
     "autoscale_go_500_10k_5": lambda: autoscale_go_workload_func(sleep="500", prime="10000", bloat="5"),
+    "autoscale_go_500_10k_5_rps": lambda: autoscale_go_workload_func(sleep="500", prime="10000", bloat="5"),
     "bench1_sleep_rand2_1000_200": lambda: bench1_sleep_rand2(sleep_base=1000, sleep_rand=200),
 }
