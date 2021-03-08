@@ -30,12 +30,16 @@ from concperf import utility
 # the target utilization
 target_util = 0.7
 
-exp_config_name = 'bench1_sleep_rand2_1000_200'
-
+# exp_config_name = 'bench1_sleep_rand2_1000_200'
+exp_config_name = 'autoscale_go_500_10k_5'
 regression_models = {
     'bench1_sleep_rand2_1000_200': {
         'conc_average_model': [0.0, 0.7587030452370006, 0.48814170860140793],
         'resp_time_model': [1.1938101149327398, 0.0843490901255519, 0.07563321033774315],
+    },
+    'autoscale_go_500_10k_5': {
+        'conc_average_model': [0.0, 0.49571552241745126, 0.002405756265780249],
+        'resp_time_model': [0.516308531798091, -0.00020302040907105838, 2.5159722316614887e-05],
     }
 }
 
@@ -224,6 +228,7 @@ for plot_arrival_rate in [1,2,5,10,20]:
     ax2.set_ylabel('Response Time (s)', color=color)
     ax2.tick_params(axis='y', labelcolor=color)
     ax2.grid(None)
+    # ax2.set_ylim([0.4,0.6])
 
     # aligning ticks for grids
     l = ax1.get_ylim()
