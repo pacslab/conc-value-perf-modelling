@@ -31,7 +31,8 @@ from concperf import utility
 target_util = 0.7
 
 # exp_config_name = 'bench1_sleep_rand2_1000_200'
-exp_config_name = 'autoscale_go_500_10k_5'
+# exp_config_name = 'autoscale_go_500_10k_5'
+exp_config_name = 'autoscale_go_500_10k_5_rps'
 regression_models = {
     'bench1_sleep_rand2_1000_200': {
         'conc_average_model': [0.0, 0.7587030452370006, 0.48814170860140793],
@@ -40,6 +41,10 @@ regression_models = {
     'autoscale_go_500_10k_5': {
         'conc_average_model': [0.0, 0.49571552241745126, 0.002405756265780249],
         'resp_time_model': [0.516308531798091, -0.00020302040907105838, 2.5159722316614887e-05],
+    },
+    'autoscale_go_500_10k_5_rps': {
+        'conc_average_model': [0.0, 1, 0],
+        'resp_time_model': [0.5160698977067653, 0.0018574299435555192, -0.00024075524479620354],
     }
 }
 
