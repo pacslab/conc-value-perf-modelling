@@ -54,6 +54,8 @@ ipykernel==5.4.3
     #   jupyter-console
     #   notebook
     #   qtconsole
+ipynb==0.5.1
+    # via -r requirements.in
 ipython-genutils==0.2.0
     # via
     #   nbformat
@@ -280,7 +282,7 @@ traitlets==5.0.5
     #   nbformat
     #   notebook
     #   qtconsole
-urllib3==1.26.2
+urllib3==1.26.3
     # via
     #   botocore
     #   kubernetes
