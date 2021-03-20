@@ -54,6 +54,8 @@ ipykernel==5.4.3
     #   jupyter-console
     #   notebook
     #   qtconsole
+ipynb==0.5.1
+    # via -r requirements.in
 ipython-genutils==0.2.0
     # via
     #   nbformat
@@ -69,7 +71,7 @@ ipywidgets==7.6.3
     # via jupyter
 jedi==0.18.0
     # via ipython
-jinja2==2.11.2
+jinja2==2.11.3
     # via
     #   nbconvert
     #   notebook
