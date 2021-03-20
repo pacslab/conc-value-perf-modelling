@@ -12,7 +12,7 @@ attrs==20.3.0
     # via jsonschema
 backcall==0.2.0
     # via ipython
-bleach==3.2.2
+bleach==3.3.0
     # via nbconvert
 boto3==1.16.59
     # via pacsltk
