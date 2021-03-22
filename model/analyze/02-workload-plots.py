@@ -32,7 +32,8 @@ target_util = 0.7
 
 # exp_config_name = 'bench1_sleep_rand2_1000_200'
 # exp_config_name = 'autoscale_go_500_10k_5'
-exp_config_name = 'autoscale_go_500_10k_5_rps'
+# exp_config_name = 'autoscale_go_500_10k_5_rps'
+exp_config_name = 'bench1_cpu_io_rps'
 regression_models = {
     'bench1_sleep_rand2_1000_200': {
         'conc_average_model': [0.0, 0.7587030452370006, 0.48814170860140793],
@@ -45,7 +46,11 @@ regression_models = {
     'autoscale_go_500_10k_5_rps': {
         'conc_average_model': [0.0, 1, 0],
         'resp_time_model': [0.5160698977067653, 0.0018574299435555192, -0.00024075524479620354],
-    }
+    },
+    'bench1_cpu_io_rps': {
+        'conc_average_model': [0.0, 1, 0],
+        'resp_time_model': [0.21371083355202003, -0.04080678570544321, 0.035958460346475485],
+    },
 }
 
 # trying new model extracted params
@@ -91,8 +96,10 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 
 if __name__ == "__main__":
     arrival_rates = [1,2,3,5,7,10,15,20]
-    target_concs = [1,2,3,5,7,10]
-    plot_targets = [1,2,5,10]
+    # target_concs = [1,2,3,5,7,10]
+    # plot_targets = [1,2,5,10]
+    target_concs = [1,1.5,2,2.5,3]
+    plot_targets = [1,1.5,2,2.5,3]
     df_data = list(itertools.product(arrival_rates, target_concs))
 
     start_time = time.time()
