@@ -1,0 +1,40 @@
+{
+  "name": "bench1",
+  "image": "ghcr.io/nimamahmoudi/conc-workloads-bench1:sha-5966a0e",
+  "env": {
+    "EXPERIMENT_NAME": "TEST1",
+    "REPORT_INTERVAL": "10",
+    "SOCKETIO_SERVER": "NO"
+  },
+  "opts": {
+    "--limit": "'cpu=250m,memory=256Mi'"
+  },
+  "annotations": {
+    "autoscaling.knative.dev/panicThresholdPercentage": "1000",
+    "autoscaling.knative.dev/target": 1,
+    "autoscaling.knative.dev/metric": "rps"
+  },
+  "request_func": "bench1_cpu_io_rps",
+  "is_rps": true,
+  "exp_spec": {
+    "time_mins": 60,
+    "name": "bench1_cpu_io_rps",
+    "target_list": [
+      1,
+      1.5,
+      2,
+      2.5,
+      3
+    ],
+    "rps_list": [
+      1,
+      2,
+      3,
+      5,
+      7,
+      10,
+      15,
+      20
+    ]
+  }
+}
