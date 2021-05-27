@@ -26,10 +26,10 @@ sys.path.append('..')
 from concperf import general_model
 from concperf import utility
 # %%
-# exp_config_name = 'bench1_sleep_rand2_1000_200'
+exp_config_name = 'bench1_sleep_rand2_1000_200'
 # exp_config_name = 'autoscale_go_500_10k_5'
 # exp_config_name = 'autoscale_go_500_10k_5_rps'
-exp_config_name = 'bench1_cpu_io_rps'
+# exp_config_name = 'bench1_cpu_io_rps'
 
 figs_folder = 'figs/'
 results_folder = 'results/'
@@ -91,7 +91,7 @@ for plot_arrival_rate in plot_arrival_rates:
     ax2.tick_params(axis='y', labelcolor=color)
     ax2.grid(None)
     # ax2.set_ylim([0.4,0.6])
-    ax2.set_ylim([0.1,0.4])
+    # ax2.set_ylim([0.1,0.4])
 
     # aligning ticks for grids
     l = ax1.get_ylim()
