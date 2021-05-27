@@ -74,8 +74,9 @@ for plot_arrival_rate in plot_arrival_rates:
     plt.figure(figsize=(4,2.5))
     color = 'k'
     ax1 = plt.gca()
-    ax1.plot(sub_overview_df['cc'], sub_overview_df['ready_avg'], color=color, label='Model Count')
-    ax1.errorbar(sub_overview_df_exp['target'], sub_overview_df_exp['average_ready_count_mean'], ls='--', yerr=sub_overview_df_exp['average_ready_count_ci'], label='Exp Count')
+    lns1 = ax1.plot(sub_overview_df['cc'], sub_overview_df['ready_avg'], color=color, label='Model Count')
+    lns2 = ax1.errorbar(sub_overview_df_exp['target'], sub_overview_df_exp['average_ready_count_mean'], ls='--', yerr=sub_overview_df_exp['average_ready_count_ci'], label='Exp Count')
+    # lns2 = ax1.plot(sub_overview_df_exp['target'], sub_overview_df_exp['average_ready_count_mean'], ls='--', label='Exp Count')
     ax1.set_xlabel('Target Value')
     ax1.set_ylabel('Instance Count', color=color)
     ax1.tick_params(axis='y', labelcolor=color)
@@ -83,8 +84,9 @@ for plot_arrival_rate in plot_arrival_rates:
 
     color = 'tab:red'
     ax2 = plt.gca().twinx()
-    ax2.plot(sub_overview_df['cc'], sub_overview_df['resp_time_avg'], ls='-', color=color, label='Model RT')
-    ax2.errorbar(sub_overview_df_exp['target'], sub_overview_df_exp['client_elapsed_time_mean'], yerr=sub_overview_df_exp['client_elapsed_time_ci'], ls='--', label='Exp RT')
+    lns3 = ax2.plot(sub_overview_df['cc'], sub_overview_df['resp_time_avg'], ls='-', color=color, label='Model RT')
+    lns4 = ax2.errorbar(sub_overview_df_exp['target'], sub_overview_df_exp['client_elapsed_time_mean'], yerr=sub_overview_df_exp['client_elapsed_time_ci'], ls='--', label='Exp RT')
+    # lns4 = ax2.plot(sub_overview_df_exp['target'], sub_overview_df_exp['client_elapsed_time_mean'], ls='--', label='Exp RT')
     ax2.set_ylabel('Response Time (s)', color=color)
     ax2.tick_params(axis='y', labelcolor=color)
     ax2.grid(None)
@@ -101,7 +103,15 @@ for plot_arrival_rate in plot_arrival_rates:
     # final config
     plt.gcf().subplots_adjust(left=0.13, bottom=0.20)
     plt.tight_layout()
-    # plt.legend()
+    
+    # fix for error bars for marged labels
+    lns2 = [lns2]
+    lns4 = [lns4]
+    
+    # merging labels
+    lns = lns1+lns2+lns3+lns4
+    labs = [l.get_label() for l in lns]
+    ax2.legend(lns, labs, loc=0)
 
     tmp_fig_save(f'05_inst_count_resp_time_target_arrival_{plot_arrival_rate}_double', exp_config_name)
 
