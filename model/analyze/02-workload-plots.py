@@ -219,7 +219,8 @@ if __name__ == "__main__":
 # let's see if we can make plots for effect of CC
 from matplotlib import ticker
 
-for plot_arrival_rate in [1,2,5,10,20]:
+plot_arrival_rates = [1,2,5,10,20]
+for plot_arrival_rate in plot_arrival_rates:
     sub_overview_df = resdf[resdf['arrival_rate_total'] == plot_arrival_rate]
     sub_overview_df = sub_overview_df.sort_values('cc')
     # to have the same values we had in experiments
