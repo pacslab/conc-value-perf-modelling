@@ -8,10 +8,10 @@ Package, experimentation results, and other artifacts for our serverless computi
 
 Here is a list of different artifacts for the proposed model:
 
-- [Deployment code for collecting data using experimentations](./experiments/)
-- [Code for parsing the datasets and generating plots](./experiments/parse_multiple.ipynb)
-- [Code for extracting workload profile](./experiments/parse_multiple_merged.ipynb)
-- [Workloads used in experiments](./workloads/)
+- [Deployment Code for Experimental Data Collection](./experiments/)
+- [Experimentation and Parsing Code](./experiments/parse_multiple.ipynb)
+- [Workload Profile Extraction Code](./experiments/parse_multiple_merged.ipynb)
+- [Workloads and Results](./workloads/)
 - [Model Implementation](./model/)
 
 ## Requirements
