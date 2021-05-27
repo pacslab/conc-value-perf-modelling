@@ -3,11 +3,16 @@
 This folder includes workloads used for testing performance models. We used a set of
 configurable benchmarks with different types of workload integrated in them. Thus, by modifying
 the requests made to each benchmark set, we can get a range of workloads that are a combination
-of different types of tasks common in serverless computing. Here are a list of the benchmarks
+of different types of tasks common in serverless computing. Here is a list of functions
 used in this work:
 
 - [Bench1](./bench1/)
 - [Autoscale-Go](./autoscale-go/)
+
+**NOTE: Please note that each of these functions include a combination of standard benchmarks used in
+previous studies. A combination of these benchmarks can represent different levels of stress on different
+resources of the virtual machines in the platform. You can find further details of these benchmarks
+in their dedicated pages.**
 
 ## List of Workloads
 
