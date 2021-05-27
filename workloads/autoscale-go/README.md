@@ -1,7 +1,7 @@
 # Autoscale-Go
 
 - Information: https://knative.dev/docs/serving/autoscaling/autoscale-go/
-- Docker Image: gcr.io/knative-samples/autoscale-go:0.1
+- Docker Image: `gcr.io/knative-samples/autoscale-go:0.1`
 
 Sample Deployment:
 
